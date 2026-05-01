@@ -1,0 +1,8 @@
+FIZICA|Ion|Liviu Rebreanu|978-973-101-001|45.5|SC-2024-001|n/a|BUNA|1|Roman|1920|400|21x14x3 cm|520|hardcover|Centrala|Sala A|Culoar 3|Raft 12
+FIZICA|Enigma Otiliei|George Calinescu|978-973-101-002|52|SC-2024-002|n/a|BUNA|1|Roman|1938|480|22x15x3 cm|600|hardcover|Centrala|Sala A|Culoar 3|Raft 13
+FIZICA|Morometii|Marin Preda|978-973-101-003|38.9|SC-2024-003|n/a|BUNA|1|Roman|1955|350|20x13x2 cm|450|softcover|Centrala|Sala B|Culoar 1|Raft 5
+DIGITALA|Clean Code|Robert C. Martin|978-0-13-235088-4|120|SC-2024-004|n/a|BUNA|1|Programare|2008|464|pdf|15.3|https://biblioteca.local/clean-code.pdf
+DIGITALA|Design Patterns|Erich Gamma,Richard Helm,Ralph Johnson,John Vlissides|978-0-201-63361-0|95|SC-2024-005|n/a|BUNA|1|Programare|1994|395|pdf|12.7|https://biblioteca.local/design-patterns.pdf
+FIZICA|Baltagul|Mihail Sadoveanu|978-973-101-006|29.9|SC-2024-006|n/a|BUNA|0|Roman|1930|220|19x12x2 cm|320|softcover|Centrala|Sala B|Culoar 2|Raft 8
+DIGITALA|Sapiens - Scurta istorie a omenirii|Yuval Noah Harari|978-606-44-0028-5|65|SC-2024-007|n/a|BUNA|1|Istorie|2011|500|audiobook|245|https://biblioteca.local/sapiens-audio
+FIZICA|Moara cu noroc|Ioan Slavici|2049-3630|35|SC-2024-008||BUNA|1|Nuvela|1881|180|19x12x2|380|softcover|Centrala|A|3|12
