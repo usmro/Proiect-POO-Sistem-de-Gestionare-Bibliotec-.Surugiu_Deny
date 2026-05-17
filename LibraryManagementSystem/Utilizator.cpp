@@ -1,4 +1,5 @@
 #include "Utilizator.h"
+#include "Carte.h"
 
 Utilizator::Utilizator()
     : id(""), parola(""), nume(""), prenume(""), cnp(""), email(""),
@@ -39,6 +40,52 @@ void Utilizator::setActiv(bool a) { activ = a; }
 // Autentificare
 bool Utilizator::verificaParola(const std::string& p) const {
     return parola == p;
+}
+
+void Utilizator::afisareCardBiblioteca(std::ostream& os) const {
+    std::string C = Color::Cyan;
+    std::string Y = Color::Yellow;
+    std::string G = Color::Green;
+    std::string M = Color::Magenta;
+    std::string B = Color::Bold;
+    std::string R = Color::Reset;
+
+    os << C << "  ________________________________________" << R << "\n";
+    os << C << " /                                        \\" << R << "\n";
+    os << C << "|  ╔════════════════════════════════════╗  |" << R << "\n";
+    os << C << "|  ║" << R << Y << B << "  CARD DE BIBLIOTECA                " << R << C << "║  |" << R << "\n";
+    os << C << "|  ╠════════════════════════════════════╣  |" << R << "\n";
+    os << C << "|  ║                                    ║  |" << R << "\n";
+    
+    // Name
+    std::string n = getNumeComplet();
+    if (n.length() > 26) n = n.substr(0, 23) + "...";
+    int pad = 28 - n.length();
+    os << C << "|  ║  " << R << G << "Nume: " << n << std::string(pad, ' ') << R << C << "║  |" << R << "\n";
+    
+    // ID
+    std::string id_str = getId();
+    if (id_str.length() > 26) id_str = id_str.substr(0, 23) + "...";
+    pad = 28 - id_str.length();
+    os << C << "|  ║  " << R << G << "ID:   " << id_str << std::string(pad, ' ') << R << C << "║  |" << R << "\n";
+    
+    // Role
+    std::string r = getRol();
+    if (r.length() > 26) r = r.substr(0, 23) + "...";
+    pad = 28 - r.length();
+    os << C << "|  ║  " << R << G << "Rol:  " << r << std::string(pad, ' ') << R << C << "║  |" << R << "\n";
+    
+    os << C << "|  ║                                    ║  |" << R << "\n";
+    
+    // Status
+    std::string status = getActiv() ? "[Valid]" : "[Inactiv]";
+    std::string status_color = getActiv() ? Color::Green : Color::Red;
+    pad = 22 - status.length();
+    os << C << "|  ║" << R << M << "       (^_^)  " << R << status_color << status << std::string(pad, ' ') << R << C << "║  |" << R << "\n";
+    
+    os << C << "|  ║                                    ║  |" << R << "\n";
+    os << C << "|  ╚════════════════════════════════════╝  |" << R << "\n";
+    os << C << " \\________________________________________/" << R << "\n";
 }
 
 std::ostream& operator<<(std::ostream& os, const Utilizator& u) {

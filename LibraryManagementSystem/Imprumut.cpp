@@ -49,7 +49,7 @@ void Imprumut::afisare(std::ostream& os) const {
     os << "┌──────────────────────────────────────────┐\n";
     os << "│  📋  ÎMPRUMUT                            │\n";
     os << "├──────────────────────────────────────────┤\n";
-    os << "  ISSN carte:      " << id_carte_imprumutata << "\n";
+    os << "  ISBN carte:      " << id_carte_imprumutata << "\n";
     os << "  ID cititor:      " << id_cititor << "\n";
     os << "  Cititor:         " << nume_cititor << "\n";
     os << "  Data împrumut:   " << data_imprumut << "\n";
@@ -84,11 +84,11 @@ Imprumut Imprumut::dinLinieFisier(const std::string& linie) {
     }
 
     if (campuri.size() >= 6) {
-        // Formatul nou: issn|id_cititor|nume_cititor|data|termen|obs
+        // Formatul nou: isbn|id_cititor|nume_cititor|data|termen|obs
         return Imprumut(campuri[0], campuri[1], campuri[2], campuri[3], campuri[4], campuri[5]);
     }
     else if (campuri.size() >= 5) {
-        // Compatibilitate cu formatul vechi: issn|nume_cititor|data|termen|obs
+        // Compatibilitate cu formatul vechi: isbn|nume_cititor|data|termen|obs
         return Imprumut(campuri[0], "", campuri[1], campuri[2], campuri[3], campuri[4]);
     }
 

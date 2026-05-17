@@ -16,8 +16,8 @@ public:
     // Constructori
     CarteDigitala();
     CarteDigitala(const std::string& titlu, const std::vector<std::string>& autori,
-                  const std::string& issn, double pret, const std::string& serie,
-                  const std::string& poza, StareCarte stare, bool disp,
+                  const std::string& isbn, double pret, const std::string& serie,
+                  const std::string& poza, StareCarte stare, int stoc_tot, int stoc_disp,
                   const std::string& categorie, int an_aparitie, int nr_pagini,
                   const std::string& format_digital, double dimensiune_mb,
                   const std::string& link_acces);

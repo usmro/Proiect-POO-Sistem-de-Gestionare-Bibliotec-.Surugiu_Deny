@@ -11,12 +11,12 @@ CarteDigitala::CarteDigitala()
 //  Constructor parametrizat
 // ─────────────────────────────────────────────
 CarteDigitala::CarteDigitala(const std::string& titlu, const std::vector<std::string>& autori,
-                             const std::string& issn, double pret, const std::string& serie,
-                             const std::string& poza, StareCarte stare, bool disp,
+                             const std::string& isbn, double pret, const std::string& serie,
+                             const std::string& poza, StareCarte stare, int stoc_tot, int stoc_disp,
                              const std::string& categorie, int an_aparitie, int nr_pagini,
                              const std::string& format_digital, double dimensiune_mb,
                              const std::string& link_acces)
-    : Carte(titlu, autori, issn, pret, serie, poza, stare, disp, categorie, an_aparitie, nr_pagini),
+    : Carte(titlu, autori, isbn, pret, serie, poza, stare, stoc_tot, stoc_disp, categorie, an_aparitie, nr_pagini),
       format_digital(format_digital), dimensiune_mb(dimensiune_mb), link_acces(link_acces) {}
 
 // ─────────────────────────────────────────────
@@ -47,14 +47,18 @@ void CarteDigitala::afisare(std::ostream& os) const {
     os << "══════════════════════════════════════════\n";
     os << "  Titlu:           " << titlu << "\n";
     os << "  Autori:          " << autoriToString() << "\n";
-    os << "  ISSN:            " << issn << "\n";
+    os << "  ISBN:            " << isbn << "\n";
     os << "  Categorie:       " << categorie << "\n";
     os << "  An apariție:     " << an_aparitie << "\n";
     os << "  Nr. pagini:      " << nr_pagini << "\n";
     os << "  Preț intrare:    " << std::fixed << std::setprecision(2) << pret_intrare << " RON\n";
     os << "  Serie contabilă: " << serie_contabila << "\n";
     os << "  Stare:           " << stareToString(stare_carte) << "\n";
-    os << "  Disponibilă:     " << (disponibilitate ? "Da" : "Nu") << "\n";
+    if (stoc_total >= 900) {
+        os << "  Stoc disponibil: Infinit (Digital)\n";
+    } else {
+        os << "  Stoc disponibil: " << stoc_disponibil << " / " << stoc_total << "\n";
+    }
     os << "  ────────────────────────────────────\n";
     os << "  Format digital:  " << format_digital << "\n";
     os << "  Dimensiune:      " << dimensiune_mb << " MB\n";
@@ -70,12 +74,12 @@ std::string CarteDigitala::formatFisier() const {
     oss << "DIGITALA|"
         << titlu << "|"
         << autoriToString() << "|"
-        << issn << "|"
+        << isbn << "|"
         << pret_intrare << "|"
         << serie_contabila << "|"
         << poza_path << "|"
         << stareToString(stare_carte) << "|"
-        << (disponibilitate ? "1" : "0") << "|"
+        << stoc_disponibil << "|" << stoc_total << "|"
         << categorie << "|"
         << an_aparitie << "|"
         << nr_pagini << "|"

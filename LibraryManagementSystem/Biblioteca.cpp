@@ -1,18 +1,29 @@
 #include "Biblioteca.h"
 #include <iostream>
 #include <iomanip>
+#include <ctime>
+#include <cstdio>
 
 Biblioteca::Biblioteca(const std::string& fisier_carti,
                        const std::string& fisier_imprumuturi,
                        const std::string& fisier_utilizatori,
-                       const std::string& fisier_returnari)
+                       const std::string& fisier_returnari,
+                       const std::string& fisier_plati,
+                       const std::string& fisier_defecte,
+                       const std::string& fisier_buget,
+                       const std::string& fisier_timp)
     : fisier_carti(fisier_carti), fisier_imprumuturi(fisier_imprumuturi),
-      fisier_utilizatori(fisier_utilizatori), fisier_returnari(fisier_returnari) {
+      fisier_utilizatori(fisier_utilizatori), fisier_returnari(fisier_returnari),
+      fisier_plati(fisier_plati), fisier_defecte(fisier_defecte), fisier_buget(fisier_buget), fisier_timp(fisier_timp), buget(0.0), offset_timp(0) {
     incarcaDate();
+    incarcaBuget();
+    incarcaTimp();
 }
 
 Biblioteca::~Biblioteca() {
     salveazaDate();
+    salveazaBuget();
+    salveazaTimp();
 }
 
 std::vector<std::string> Biblioteca::splitLinie(const std::string& linie, char delim) const {
@@ -31,38 +42,69 @@ std::shared_ptr<Carte> Biblioteca::parseazaLinieCarte(const std::string& linie) 
 
     std::string tip = campuri[0];
 
-    if (tip == "FIZICA" && campuri.size() >= 19) {
-        auto autori = Carte::stringToAutori(campuri[2]);
-        double pret = std::stod(campuri[4]);
-        StareCarte stare = Carte::stringToStare(campuri[7]);
-        bool disp = (campuri[8] == "1");
-        int an = std::stoi(campuri[10]);
-        int pag = std::stoi(campuri[11]);
-        double greutate = std::stod(campuri[13]);
-        Locatie loc(campuri[15], campuri[16], campuri[17], campuri[18]);
+    try {
+        if (tip == "FIZICA" && campuri.size() >= 20) {
+            auto autori = Carte::stringToAutori(campuri[2]);
+            double pret = std::stod(campuri[4]);
+            StareCarte stare = Carte::stringToStare(campuri[7]);
+            int stoc_disp = std::stoi(campuri[8]);
+            int stoc_tot = std::stoi(campuri[9]);
+            int an = std::stoi(campuri[11]);
+            int pag = std::stoi(campuri[12]);
+            double greutate = std::stod(campuri[14]);
+            Locatie loc(campuri[16], campuri[17], campuri[18], campuri[19]);
 
-        return std::make_shared<CarteFizica>(
-            campuri[1], autori, campuri[3], pret, campuri[5], campuri[6],
-            stare, disp, campuri[9], an, pag,
-            campuri[12], greutate, campuri[14], loc
-        );
-    }
-    else if (tip == "DIGITALA" && campuri.size() >= 15) {
-        auto autori = Carte::stringToAutori(campuri[2]);
-        double pret = std::stod(campuri[4]);
-        StareCarte stare = Carte::stringToStare(campuri[7]);
-        bool disp = (campuri[8] == "1");
-        int an = std::stoi(campuri[10]);
-        int pag = std::stoi(campuri[11]);
-        double dim_mb = std::stod(campuri[13]);
+            return std::make_shared<CarteFizica>(
+                campuri[1], autori, campuri[3], pret, campuri[5], campuri[6],
+                stare, stoc_tot, stoc_disp, campuri[10], an, pag,
+                campuri[13], greutate, campuri[15], loc
+            );
+        }
+        else if (tip == "DIGITALA" && campuri.size() >= 16) {
+            auto autori = Carte::stringToAutori(campuri[2]);
+            double pret = std::stod(campuri[4]);
+            StareCarte stare = Carte::stringToStare(campuri[7]);
+            int stoc_disp = std::stoi(campuri[8]);
+            int stoc_tot = std::stoi(campuri[9]);
+            int an = std::stoi(campuri[11]);
+            int pag = std::stoi(campuri[12]);
+            double dim_mb = std::stod(campuri[14]);
 
-        return std::make_shared<CarteDigitala>(
-            campuri[1], autori, campuri[3], pret, campuri[5], campuri[6],
-            stare, disp, campuri[9], an, pag,
-            campuri[12], dim_mb, campuri[14]
-        );
+            return std::make_shared<CarteDigitala>(
+                campuri[1], autori, campuri[3], pret, campuri[5], campuri[6],
+                stare, stoc_tot, stoc_disp, campuri[10], an, pag,
+                campuri[13], dim_mb, campuri[15]
+            );
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "EROARE in parseazaLinieCarte pentru linia: " << linie << std::endl;
+        std::cerr << "Exceptie: " << e.what() << std::endl;
+        throw;
     }
     return nullptr;
+}
+
+time_t Biblioteca::stringToTime(const std::string& data_str) {
+    struct tm tm = {0};
+    int d, m, y;
+    if (sscanf(data_str.c_str(), "%d/%d/%d", &d, &m, &y) != 3) {
+        return 0;
+    }
+    tm.tm_mday = d;
+    tm.tm_mon = m - 1;
+    tm.tm_year = y - 1900;
+    return mktime(&tm);
+}
+
+int Biblioteca::calculeazaZileIntarziere(const std::string& data_limita_str) const {
+    time_t t_limita = stringToTime(data_limita_str);
+    if (t_limita == 0) return 0;
+
+    time_t t_acum = getVirtualTime();
+    double secunde = difftime(t_acum, t_limita);
+    if (secunde <= 0) return 0;
+
+    return static_cast<int>(secunde / (60 * 60 * 24));
 }
 
 std::shared_ptr<Utilizator> Biblioteca::parseazaLinieUtilizator(const std::string& linie) const {
@@ -150,7 +192,7 @@ void Biblioteca::incarcaDate() {
             auto campuri = splitLinie(linie, '|');
             if (campuri.size() >= 5) {
                 ReturnareInAsteptare r;
-                r.issn           = campuri[0];
+                r.isbn           = campuri[0];
                 r.id_cititor     = campuri[1];
                 r.nume_cititor   = campuri[2];
                 r.titlu_carte    = campuri[3];
@@ -159,6 +201,37 @@ void Biblioteca::incarcaDate() {
             }
         }
         fin_ret.close();
+    }
+
+    std::ifstream fin_plati(fisier_plati);
+    if (fin_plati.is_open()) {
+        std::string linie;
+        while (std::getline(fin_plati, linie)) {
+            if (linie.empty()) continue;
+            auto c = splitLinie(linie, '|');
+            if (c.size() >= 4) {
+                PlataInAsteptare p;
+                p.id_cititor = c[0];
+                p.nume_cititor = c[1];
+                p.suma = std::stod(c[2]);
+                p.data_solicitare = c[3];
+                plati_in_asteptare.push_back(p);
+            }
+        }
+        fin_plati.close();
+    }
+
+    std::ifstream fin_defecte(fisier_defecte);
+    if (fin_defecte.is_open()) {
+        std::string linie;
+        while (std::getline(fin_defecte, linie)) {
+            if (linie.empty()) continue;
+            auto c = splitLinie(linie, '|');
+            if (c.size() >= 2) {
+                stoc_defect[c[0]] = std::stoi(c[1]);
+            }
+        }
+        fin_defecte.close();
     }
 }
 
@@ -191,11 +264,31 @@ void Biblioteca::salveazaDate() const {
     std::ofstream fout_ret(fisier_returnari, std::ios::trunc);
     if (fout_ret.is_open()) {
         for (const auto& r : returnari_in_asteptare) {
-            fout_ret << r.issn << "|" << r.id_cititor << "|"
+            fout_ret << r.isbn << "|" << r.id_cititor << "|"
                      << r.nume_cititor << "|" << r.titlu_carte << "|"
-                     << r.data_returnare << "\n";
+                     << r.data_returnare << "|" << r.amenda_intarziere << "\n";
         }
         fout_ret.close();
+    }
+
+    // Salveaza plati in asteptare
+    std::ofstream fout_plati(fisier_plati, std::ios::trunc);
+    if (fout_plati.is_open()) {
+        for (const auto& p : plati_in_asteptare) {
+            fout_plati << p.id_cititor << "|" << p.nume_cititor << "|"
+                       << p.suma << "|" << p.data_solicitare << "\n";
+        }
+    }
+
+    // Salveaza stoc defect
+    std::ofstream fout_defecte(fisier_defecte, std::ios::trunc);
+    if (fout_defecte.is_open()) {
+        for (const auto& pair : stoc_defect) {
+            if (pair.second > 0) {
+                fout_defecte << pair.first << "|" << pair.second << "\n";
+            }
+        }
+        fout_defecte.close();
     }
 }
 
@@ -212,46 +305,58 @@ std::shared_ptr<Utilizator> Biblioteca::autentificare(const std::string& id, con
 
 // Cărți (fără modificări structurale)
 void Biblioteca::adaugaCarteFizica(const std::string& titlu, const std::vector<std::string>& autori,
-                                    const std::string& issn, double pret, const std::string& serie,
-                                    const std::string& poza, StareCarte stare, bool disp,
+                                    const std::string& isbn, double pret, const std::string& serie,
+                                    const std::string& poza, StareCarte stare, int stoc_tot, int stoc_disp,
                                     const std::string& categorie, int an, int pagini,
                                     const std::string& dimensiuni, double greutate,
                                     const std::string& coperta, const Locatie& loc) {
     carti.push_back(std::make_shared<CarteFizica>(
-        titlu, autori, issn, pret, serie, poza, stare, disp,
+        titlu, autori, isbn, pret, serie, poza, stare, stoc_tot, stoc_disp,
         categorie, an, pagini, dimensiuni, greutate, coperta, loc
     ));
 }
 
 void Biblioteca::adaugaCarteDigitala(const std::string& titlu, const std::vector<std::string>& autori,
-                                      const std::string& issn, double pret, const std::string& serie,
-                                      const std::string& poza, StareCarte stare, bool disp,
+                                      const std::string& isbn, double pret, const std::string& serie,
+                                      const std::string& poza, StareCarte stare, int stoc_tot, int stoc_disp,
                                       const std::string& categorie, int an, int pagini,
                                       const std::string& format_digital, double dimensiune_mb,
                                       const std::string& link_acces) {
     carti.push_back(std::make_shared<CarteDigitala>(
-        titlu, autori, issn, pret, serie, poza, stare, disp,
+        titlu, autori, isbn, pret, serie, poza, stare, stoc_tot, stoc_disp,
         categorie, an, pagini, format_digital, dimensiune_mb, link_acces
     ));
 }
 
-bool Biblioteca::stergeCarte(const std::string& issn) {
+bool Biblioteca::stergeCarte(const std::string& isbn) {
     auto it = std::remove_if(carti.begin(), carti.end(),
-        [&issn](const std::shared_ptr<Carte>& c) { return c->getIssn() == issn; });
+        [&isbn](const std::shared_ptr<Carte>& c) { return c->getIsbn() == isbn; });
 
     if (it != carti.end()) {
         carti.erase(it, carti.end());
         auto it_imp = std::remove_if(imprumuturi.begin(), imprumuturi.end(),
-            [&issn](const Imprumut& imp) { return imp.getIdCarte() == issn; });
+            [&isbn](const Imprumut& imp) { return imp.getIdCarte() == isbn; });
         imprumuturi.erase(it_imp, imprumuturi.end());
         return true;
     }
     return false;
 }
 
-std::shared_ptr<Carte> Biblioteca::gasesteCarte(const std::string& issn) const {
+bool Biblioteca::reparaCarte(const std::string& isbn) {
+    auto carte = gasesteCarte(isbn);
+    if (carte && stoc_defect[isbn] > 0) {
+        stoc_defect[isbn]--;
+        carte->setStocTotal(carte->getStocTotal() + 1);
+        carte->setStocDisponibil(carte->getStocDisponibil() + 1);
+        carte->setStareCarte(StareCarte::BUNA); // ne asigurăm că e BUNA
+        return true;
+    }
+    return false;
+}
+
+std::shared_ptr<Carte> Biblioteca::gasesteCarte(const std::string& isbn) const {
     for (const auto& c : carti) {
-        if (c->getIssn() == issn) return c;
+        if (c->getIsbn() == isbn) return c;
     }
     return nullptr;
 }
@@ -322,6 +427,15 @@ std::shared_ptr<Utilizator> Biblioteca::gasesteUtilizator(const std::string& id)
     return nullptr;
 }
 
+bool Biblioteca::platestePenalizari(const std::string& id_cititor) {
+    auto cititor = gasesteCititor(id_cititor);
+    if (cititor) {
+        cititor->setPenalizari(0.0);
+        return true;
+    }
+    return false;
+}
+
 std::shared_ptr<Cititor> Biblioteca::gasesteCititor(const std::string& id) const {
     auto util = gasesteUtilizator(id);
     if (util && util->getTip() == "CITITOR") {
@@ -330,9 +444,9 @@ std::shared_ptr<Cititor> Biblioteca::gasesteCititor(const std::string& id) const
     return nullptr;
 }
 
-std::string Biblioteca::getIssnDupaIndex(size_t index) const {
+std::string Biblioteca::getIsbnDupaIndex(size_t index) const {
     if (index > 0 && index <= carti.size()) {
-        return carti[index - 1]->getIssn();
+        return carti[index - 1]->getIsbn();
     }
     return "";
 }
@@ -434,16 +548,20 @@ std::vector<std::shared_ptr<Utilizator>> Biblioteca::cautaUtilizatorDupaRol(cons
 }
 
 // Împrumuturi
-bool Biblioteca::adaugaImprumut(const std::string& issn, const std::string& id_cititor,
+bool Biblioteca::adaugaImprumut(const std::string& isbn, const std::string& id_cititor,
                                  const std::string& data_imp, const std::string& termen,
                                  const std::string& obs) {
-    auto carte = gasesteCarte(issn);
+    auto carte = gasesteCarte(isbn);
     if (!carte) {
-        std::cerr << "  [EROARE] Cartea cu ISSN '" << issn << "' nu a fost găsită.\n";
+        std::cerr << "  [EROARE] Cartea cu ISBN '" << isbn << "' nu a fost găsită.\n";
         return false;
     }
-    if (!carte->getDisponibilitate()) {
-        std::cerr << "  [EROARE] Cartea '" << carte->getTitlu() << "' nu este disponibilă.\n";
+    if (carte->getStocDisponibil() <= 0) {
+        std::cerr << "  [EROARE] Cartea '" << carte->getTitlu() << "' nu mai are exemplare disponibile (Stoc: 0).\n";
+        return false;
+    }
+    if (carte->getStareCarte() == StareCarte::DEFECTA) {
+        std::cerr << "  [EROARE] Cartea '" << carte->getTitlu() << "' este marcată ca DEFECTĂ și nu poate fi împrumutată.\n";
         return false;
     }
 
@@ -458,22 +576,22 @@ bool Biblioteca::adaugaImprumut(const std::string& issn, const std::string& id_c
         return false;
     }
 
-    carte->setDisponibilitate(false);
+    carte->setStocDisponibil(carte->getStocDisponibil() - 1);
     cititor->incrementeazaImprumuturi();
-    imprumuturi.emplace_back(issn, id_cititor, cititor->getNumeComplet(), data_imp, termen, obs);
+    imprumuturi.emplace_back(isbn, id_cititor, cititor->getNumeComplet(), data_imp, termen, obs);
     return true;
 }
 
-bool Biblioteca::returneazaCarte(const std::string& issn, const std::string& id_cititor) {
+bool Biblioteca::returneazaCarte(const std::string& isbn, const std::string& id_cititor) {
     auto it = std::find_if(imprumuturi.begin(), imprumuturi.end(),
-        [&issn, &id_cititor](const Imprumut& imp) {
-            return imp.getIdCarte() == issn && imp.getIdCititor() == id_cititor;
+        [&isbn, &id_cititor](const Imprumut& imp) {
+            return imp.getIdCarte() == isbn && imp.getIdCititor() == id_cititor;
         });
 
     if (it != imprumuturi.end()) {
         imprumuturi.erase(it);
-        auto carte = gasesteCarte(issn);
-        if (carte) carte->setDisponibilitate(true);
+        auto carte = gasesteCarte(isbn);
+        if (carte) carte->setStocDisponibil(carte->getStocDisponibil() + 1);
         auto cititor = gasesteCititor(id_cititor);
         if (cititor) cititor->decrementeazaImprumuturi();
         return true;
@@ -490,12 +608,16 @@ const Imprumut* Biblioteca::getImprumutDupaIndex(size_t index) const {
 
 // ─── Returnare in 2 pasi ─────────────────────────────────────────────────────
 
-bool Biblioteca::solicitaReturnare(const std::string& issn, const std::string& id_cititor) {
+bool Biblioteca::solicitaReturnare(const std::string& isbn, const std::string& id_cititor) {
     auto it = std::find_if(imprumuturi.begin(), imprumuturi.end(),
-        [&issn, &id_cititor](const Imprumut& imp) {
-            return imp.getIdCarte() == issn && imp.getIdCititor() == id_cititor;
+        [&isbn, &id_cititor](const Imprumut& imp) {
+            return imp.getIdCarte() == isbn && imp.getIdCititor() == id_cititor;
         });
     if (it == imprumuturi.end()) return false;
+
+    // Calculăm amenda de întârziere înainte de a șterge împrumutul
+    int zile = calculeazaZileIntarziere(it->getTermenLimita());
+    double amenda = zile * 2.0;
 
     std::string nume_cititor = it->getNumeCititor();
     imprumuturi.erase(it);
@@ -505,22 +627,21 @@ bool Biblioteca::solicitaReturnare(const std::string& issn, const std::string& i
     if (cititor) cititor->decrementeazaImprumuturi();
 
     // Cartea ramane indisponibila pana confirma bibliotecar
-    auto carte = gasesteCarte(issn);
-    std::string titlu = carte ? carte->getTitlu() : issn;
+    auto carte = gasesteCarte(isbn);
+    std::string titlu = carte ? carte->getTitlu() : isbn;
 
-    time_t rawtime;
-    struct tm* ti;
+    time_t rawtime = getVirtualTime();
+    struct tm* ti = localtime(&rawtime);
     char buf[20];
-    time(&rawtime);
-    ti = localtime(&rawtime);
     strftime(buf, sizeof(buf), "%d/%m/%Y", ti);
 
     ReturnareInAsteptare r;
-    r.issn           = issn;
+    r.isbn           = isbn;
     r.id_cititor     = id_cititor;
     r.nume_cititor   = nume_cititor;
     r.titlu_carte    = titlu;
     r.data_returnare = std::string(buf);
+    r.amenda_intarziere = amenda;
     returnari_in_asteptare.push_back(r);
     return true;
 }
@@ -528,8 +649,15 @@ bool Biblioteca::solicitaReturnare(const std::string& issn, const std::string& i
 bool Biblioteca::confirmaReturnare(size_t index) {
     if (index == 0 || index > returnari_in_asteptare.size()) return false;
     const ReturnareInAsteptare& r = returnari_in_asteptare[index - 1];
-    auto carte = gasesteCarte(r.issn);
-    if (carte) carte->setDisponibilitate(true);
+    
+    // Aplicăm amenda de întârziere (calculată în solicitaReturnare)
+    auto cititor = gasesteCititor(r.id_cititor);
+    if (cititor && r.amenda_intarziere > 0) {
+        cititor->setPenalizari(cititor->getPenalizari() + r.amenda_intarziere);
+    }
+    
+    auto carte = gasesteCarte(r.isbn);
+    if (carte) carte->setStocDisponibil(carte->getStocDisponibil() + 1);
     returnari_in_asteptare.erase(returnari_in_asteptare.begin() + static_cast<int>(index - 1));
     return true;
 }
@@ -537,10 +665,22 @@ bool Biblioteca::confirmaReturnare(size_t index) {
 bool Biblioteca::refuzaReturnareDefecta(size_t index) {
     if (index == 0 || index > returnari_in_asteptare.size()) return false;
     const ReturnareInAsteptare& r = returnari_in_asteptare[index - 1];
-    auto carte = gasesteCarte(r.issn);
+    auto carte = gasesteCarte(r.isbn);
     if (carte) {
-        carte->setDisponibilitate(true);       // reintra in stoc
-        carte->setStareCarte(StareCarte::DEFECTA); // dar marcata defecta
+        // NU mai incrementăm stoc_disponibil (cartea nu e la raft)
+        // Decrementăm stoc_total (nu mai e o carte "bună" în bibliotecă)
+        if (carte->getStocTotal() > 0) {
+            carte->setStocTotal(carte->getStocTotal() - 1);
+        }
+        
+        // Adăugăm în stocul de defecte
+        stoc_defect[r.isbn]++;
+        
+        // Aplicăm amenda pentru deteriorare (prețul cărții)
+        auto cititor = gasesteCititor(r.id_cititor);
+        if (cititor) {
+            cititor->setPenalizari(cititor->getPenalizari() + carte->getPretIntrare());
+        }
     }
     returnari_in_asteptare.erase(returnari_in_asteptare.begin() + static_cast<int>(index - 1));
     return true;
@@ -552,29 +692,108 @@ void Biblioteca::afiseazaReturnariInAsteptare(std::ostream& os) const {
         return;
     }
     os << "\n";
-    os << "  \u2554\u2550\u2550\u2550\u2550\u2564\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2564\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2564\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2564\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n";
-    os << "  \u2551 Nr \u2502 Titlu carte                   \u2502 ISSN      \u2502 Cititor             \u2502 Data ret.  \u2551\n";
-    os << "  \u255f\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u253c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2562\n";
+    os << Color::Cyan;
+    os << "  ╔══════════════════════════════════════════════════════════════════════════════════════════╗\n";
+    os << "  ║                                 📋 RETURNĂRI ÎN AȘTEPTARE                                ║\n";
+    os << "  ╠════╦══════════════════════════════╦═══════════╦═════════════════════╦════════════════════╣\n";
+    os << "  ║ Nr ║ Titlu carte                  ║ ISBN      ║ Cititor             ║ Data ret.          ║\n";
+    os << "  ╠════╬══════════════════════════════╬═══════════╬═════════════════════╬════════════════════╣\n";
+    os << Color::Reset;
     for (size_t i = 0; i < returnari_in_asteptare.size(); ++i) {
         const auto& r = returnari_in_asteptare[i];
         std::string titlu = r.titlu_carte;
         if (titlu.length() > 28) titlu = titlu.substr(0, 25) + "...";
-        std::string issn = r.issn;
-        if (issn.length() > 9) issn = issn.substr(0, 7) + "..";
+        std::string isbn = r.isbn;
+        if (isbn.length() > 9) isbn = isbn.substr(0, 7) + "..";
         std::string cititor = r.nume_cititor;
         if (cititor.length() > 19) cititor = cititor.substr(0, 17) + "..";
-        os << "  \u2551 " << std::setw(2) << (i + 1) << " \u2502 "
-           << std::setw(30) << std::left << titlu << " \u2502 "
-           << std::setw(9)  << std::left << issn   << " \u2502 "
-           << std::setw(19) << std::left << cititor << " \u2502 "
-           << std::setw(10) << std::left << r.data_returnare << " \u2551\n";
+        os << "  ║ " << std::setw(2) << (i + 1) << " ║ "
+           << std::setw(28) << std::left << titlu << " ║ "
+           << std::setw(9)  << std::left << isbn   << " ║ "
+           << std::setw(19) << std::left << cititor << " ║ "
+           << std::setw(18) << std::left << r.data_returnare << " ║\n";
     }
-    os << "  \u255a\u2550\u2550\u2550\u2550\u2567\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2567\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2567\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2567\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\n";
-    os << "  Total in asteptare: " << returnari_in_asteptare.size() << "\n\n";
+    os << Color::Cyan << "  ╚════╩══════════════════════════════╩═══════════╩═════════════════════╩════════════════════╝\n" << Color::Reset;
+    os << "  Total în așteptare: " << returnari_in_asteptare.size() << "\n\n";
 }
 
 size_t Biblioteca::getNumarReturnariInAsteptare() const {
     return returnari_in_asteptare.size();
+}
+
+bool Biblioteca::solicitaPlata(const std::string& id_cititor) {
+    auto cititor = gasesteCititor(id_cititor);
+    double penalizari = calculeazaPenalizariTotale(id_cititor);
+    if (!cititor || penalizari <= 0) return false;
+
+    // Verificăm dacă există deja o cerere pentru acest cititor
+    for (const auto& p : plati_in_asteptare) {
+        if (p.id_cititor == id_cititor) return false;
+    }
+
+    time_t rawtime = getVirtualTime();
+    struct tm* ti = localtime(&rawtime);
+    char buf[20];
+    strftime(buf, sizeof(buf), "%d/%m/%Y", ti);
+
+    PlataInAsteptare p;
+    p.id_cititor = id_cititor;
+    p.nume_cititor = cititor->getNumeComplet();
+    p.suma = penalizari;
+    p.data_solicitare = std::string(buf);
+
+    plati_in_asteptare.push_back(p);
+    return true;
+}
+
+bool Biblioteca::confirmaPlata(size_t index) {
+    if (index == 0 || index > plati_in_asteptare.size()) return false;
+    const PlataInAsteptare& p = plati_in_asteptare[index - 1];
+    
+    if (platestePenalizari(p.id_cititor)) {
+        plati_in_asteptare.erase(plati_in_asteptare.begin() + static_cast<int>(index - 1));
+        return true;
+    }
+    return false;
+}
+
+bool Biblioteca::refuzaPlata(size_t index) {
+    if (index == 0 || index > plati_in_asteptare.size()) return false;
+    plati_in_asteptare.erase(plati_in_asteptare.begin() + static_cast<int>(index - 1));
+    return true;
+}
+
+size_t Biblioteca::getNumarPlatiInAsteptare() const {
+    return plati_in_asteptare.size();
+}
+
+void Biblioteca::afiseazaPlatiInAsteptare(std::ostream& os) const {
+    if (plati_in_asteptare.empty()) {
+        os << "\n  ⚠  Nu există cereri de plată în așteptare.\n\n";
+        return;
+    }
+    os << "\n";
+    os << Color::Cyan;
+    os << "  ╔══════════════════════════════════════════════════════════════════════════════════════════╗\n";
+    os << "  ║                                 📋 PLĂȚI ÎN AȘTEPTARE                                    ║\n";
+    os << "  ╠════╦══════════════════════════╦══════════════╦═════════════════════╦════════════════════╣\n";
+    os << "  ║ Nr ║ Nume Cititor             ║ Sumă (RON)   ║ ID Cititor          ║ Data Solicitării   ║\n";
+    os << "  ╠════╬══════════════════════════╬══════════════╬═════════════════════╬════════════════════╣\n";
+    os << Color::Reset;
+
+    for (size_t i = 0; i < plati_in_asteptare.size(); ++i) {
+        const auto& p = plati_in_asteptare[i];
+        std::string nume = p.nume_cititor;
+        if (nume.length() > 24) nume = nume.substr(0, 21) + "..";
+        
+        os << "  ║ " << std::setw(2) << (i + 1) << " ║ "
+           << std::setw(24) << std::left << nume << " ║ "
+           << std::setw(12) << std::right << std::fixed << std::setprecision(2) << p.suma << " ║ "
+           << std::setw(19) << std::left << p.id_cititor << " ║ "
+           << std::setw(18) << std::left << p.data_solicitare << " ║\n";
+    }
+    os << Color::Cyan << "  ╚════╩══════════════════════════╩══════════════╩═════════════════════╩════════════════════╝\n" << Color::Reset;
+    os << "  Total cereri: " << plati_in_asteptare.size() << "\n\n";
 }
 
 // Afișare
@@ -594,6 +813,13 @@ void Biblioteca::afiseazaToateImprumuturile(std::ostream& os) const {
     for (size_t i = 0; i < imprumuturi.size(); ++i) {
         os << "  [Nr Împrumut: " << (i + 1) << "]\n";
         imprumuturi[i].afisare(os);
+        
+        int zile = calculeazaZileIntarziere(imprumuturi[i].getTermenLimita());
+        if (zile > 0) {
+            os << "  " << "\033[31m" << "⚠️  ÎNTÂRZIERE: " << zile << " zile! Amendă: " << zile * 2 << " RON" << "\033[0m" << "\n";
+        } else {
+            os << "  " << "\033[32m" << "✓  În termen." << "\033[0m" << "\n";
+        }
         os << "\n";
     }
 }
@@ -605,6 +831,13 @@ void Biblioteca::afiseazaImprumuturiCititor(std::ostream& os, const std::string&
         if (imprumuturi[i].getIdCititor() == id_cititor) {
             os << "  [Nr Împrumut: " << (i + 1) << "]\n";
             imprumuturi[i].afisare(os);
+            
+            int zile = calculeazaZileIntarziere(imprumuturi[i].getTermenLimita());
+            if (zile > 0) {
+                os << "  " << "\033[31m" << "⚠️  ÎNTÂRZIERE: " << zile << " zile! Amendă: " << zile * 2 << " RON" << "\033[0m" << "\n";
+            } else {
+                os << "  " << "\033[32m" << "✓  În termen." << "\033[0m" << "\n";
+            }
             os << "\n";
             gasit = true;
         }
@@ -614,33 +847,48 @@ void Biblioteca::afiseazaImprumuturiCititor(std::ostream& os, const std::string&
 
 void Biblioteca::afiseazaInventarScurt(std::ostream& os) const {
     os << "\n";
-    os << "  ╔════════════════════════════════════════════════════════════════════════════════════════════════════════╗\n";
-    os << "  ║                                     📚  INVENTAR BIBLIOTECĂ                                            ║\n";
-    os << "  ╠════╦════════════════════════════╦════════════════╦═══════════╦═════════════════════════════╦═══════════╣\n";
-    os << "  ║ Nr ║ Titlu                      ║ ISSN           ║ Tip       ║ Locație                     ║ Stare     ║\n";
-    os << "  ╠════╬════════════════════════════╬════════════════╬═══════════╬═════════════════════════════╬═══════════╣\n";
+    os << Color::Cyan;
+    os << "  ╔═════════════════════════════════════════════════════════════════════════════════════════╗\n";
+    os << "  ║                                 📚  INVENTAR BIBLIOTECĂ                                 ║\n";
+    os << "  ╠════╦══════════════════════╦════════════════╦════════╦══════════════════╦════════════════╣\n";
+    os << "  ║ Nr ║ Titlu                ║ ISBN           ║ Tip    ║ Locație          ║ Stoc (Disp/Tot)║\n";
+    os << "  ╠════╬══════════════════════╬════════════════╬════════╬══════════════════╬════════════════╣\n";
+    os << Color::Reset;
 
     for (size_t i = 0; i < carti.size(); ++i) {
         std::string titlu = carti[i]->getTitlu();
-        if (titlu.length() > 26) titlu = titlu.substr(0, 23) + "...";
-        std::string issn = carti[i]->getIssn();
-        if (issn.length() > 14) issn = issn.substr(0, 11) + "...";
+        if (titlu.length() > 20) titlu = titlu.substr(0, 17) + "...";
+        std::string isbn = carti[i]->getIsbn();
+        if (isbn.length() > 14) isbn = isbn.substr(0, 11) + "...";
         std::string loc = carti[i]->getLocatieScurta();
-        if (loc.length() > 27) loc = loc.substr(0, 24) + "...";
+        if (loc.length() > 16) loc = loc.substr(0, 13) + "...";
+
+        std::string stoc_str;
+        if (carti[i]->getStocTotal() >= 900) {
+            stoc_str = "Infinit";
+        } else {
+            stoc_str = std::to_string(carti[i]->getStocDisponibil()) + "/" + std::to_string(carti[i]->getStocTotal());
+            if (carti[i]->getStareCarte() == StareCarte::DEFECTA) {
+                stoc_str += " (!)";
+            }
+        }
+
+        std::string color_stoc = (carti[i]->getStocDisponibil() > 0) ? Color::Green : Color::Red;
 
         os << "  ║ " << std::setw(2) << (i + 1) << " ║ "
-           << std::setw(26) << std::left << titlu << " ║ "
-           << std::setw(14) << std::left << issn << " ║ "
-           << std::setw(9) << std::left << carti[i]->getTip() << " ║ "
-           << std::setw(27) << std::left << loc << " ║ "
-           << std::setw(9) << std::left
-           << (carti[i]->getDisponibilitate() ? "Disp." : "Împrum.") << " ║\n";
+           << std::setw(20) << std::left << titlu << " ║ "
+           << std::setw(14) << std::left << isbn << " ║ "
+           << std::setw(6) << std::left << (carti[i]->getTip() == "FIZICA" ? "Fizic" : "Digit") << " ║ "
+           << std::setw(16) << std::left << loc << " ║ "
+           << color_stoc
+           << std::setw(14) << std::left << stoc_str
+           << Color::Reset << " ║\n";
     }
 
-    os << "  ╚════╩════════════════════════════╩════════════════╩═══════════╩═════════════════════════════╩═══════════╝\n";
-    os << "  Total cărți: " << carti.size()
-       << " | Disponibile: " << getNumarDisponibile()
-       << " | Împrumutate: " << (carti.size() - getNumarDisponibile()) << "\n\n";
+    os << Color::Cyan << "  ╚════╩══════════════════════╩════════════════╩════════╩══════════════════╩════════════════╝\n" << Color::Reset;
+    os << "  Total tipuri cărți: " << carti.size()
+       << " | Exemplare disponibile: " << getNumarDisponibile()
+       << " | Total exemplare fizice: " << getNumarCarti() << "\n\n";
 }
 
 void Biblioteca::afiseazaTotiUtilizatorii(std::ostream& os) const {
@@ -655,11 +903,13 @@ void Biblioteca::afiseazaTotiUtilizatorii(std::ostream& os) const {
 
 void Biblioteca::afiseazaUtilizatoriScurt(std::ostream& os) const {
     os << "\n";
+    os << Color::Cyan;
     os << "  ╔══════════════════════════════════════════════════════════════════════════════╗\n";
     os << "  ║                         👥  REGISTRU UTILIZATORI                            ║\n";
     os << "  ╠════╦══════════╦══════════════════════════╦══════════════╦════════════════════╣\n";
     os << "  ║ Nr ║ ID       ║ Nume complet             ║ Rol          ║ Status             ║\n";
     os << "  ╠════╬══════════╬══════════════════════════╬══════════════╬════════════════════╣\n";
+    os << Color::Reset;
 
     for (size_t i = 0; i < utilizatori.size(); ++i) {
         std::string nume = utilizatori[i]->getNumeComplet();
@@ -670,22 +920,35 @@ void Biblioteca::afiseazaUtilizatoriScurt(std::ostream& os) const {
         os << "  ║ " << std::setw(2) << (i + 1) << " ║ "
            << std::setw(8) << std::left << id << " ║ "
            << std::setw(24) << std::left << nume << " ║ "
-           << std::setw(12) << std::left << utilizatori[i]->getRol() << " ║ "
-           << std::setw(18) << std::left
-           << (utilizatori[i]->getActiv() ? "✅ Activ" : "❌ Inactiv") << " ║\n";
+           << std::setw(12) << std::left << utilizatori[i]->getRol() << " ║ ";
+        if (utilizatori[i]->getActiv()) {
+            os << Color::Green << "✅ Activ            " << Color::Reset;
+        } else {
+            os << Color::Red << "❌ Inactiv          " << Color::Reset;
+        }
+        os << " ║\n";
     }
 
-    os << "  ╚════╩══════════╩══════════════════════════╩══════════════╩════════════════════╝\n";
+    os << Color::Cyan << "  ╚════╩══════════╩══════════════════════════╩══════════════╩════════════════════╝\n" << Color::Reset;
     os << "  Total: " << utilizatori.size()
        << " | Angajați: " << getNumarAngajati()
        << " | Cititori: " << getNumarCititori() << "\n\n";
 }
 
-size_t Biblioteca::getNumarCarti() const { return carti.size(); }
+size_t Biblioteca::getNumarCarti() const { 
+    size_t total = 0;
+    for (const auto& c : carti) {
+        if (c->getStocTotal() < 900) total += c->getStocTotal();
+    }
+    return total; 
+}
 size_t Biblioteca::getNumarImprumuturi() const { return imprumuturi.size(); }
 size_t Biblioteca::getNumarDisponibile() const {
-    return std::count_if(carti.begin(), carti.end(),
-        [](const std::shared_ptr<Carte>& c) { return c->getDisponibilitate(); });
+    size_t total = 0;
+    for (const auto& c : carti) {
+        if (c->getStocTotal() < 900) total += c->getStocDisponibil();
+    }
+    return total;
 }
 size_t Biblioteca::getNumarUtilizatori() const { return utilizatori.size(); }
 size_t Biblioteca::getNumarCititori() const {
@@ -697,4 +960,153 @@ size_t Biblioteca::getNumarAngajati() const {
         [](const std::shared_ptr<Utilizator>& u) {
             return u->getTip() == "DIRECTOR" || u->getTip() == "BIBLIOTECAR" || u->getTip() == "INGRIJITOR";
         });
+}
+
+std::shared_ptr<Carte> Biblioteca::getCarteDupaIndex(size_t index) const {
+    if (index > 0 && index <= carti.size()) {
+        return carti[index - 1];
+    }
+    return nullptr;
+}
+
+bool Biblioteca::modificaCarte(const std::string& isbn, const std::string& noul_titlu, const std::vector<std::string>& noii_autori, double noul_pret, const std::string& noua_categorie, int noul_an, int noile_pagini) {
+    auto carte = gasesteCarte(isbn);
+    if (!carte) return false;
+    
+    if (!noul_titlu.empty()) carte->setTitlu(noul_titlu);
+    if (!noii_autori.empty()) carte->setAutori(noii_autori);
+    if (noul_pret > 0) carte->setPretIntrare(noul_pret);
+    if (!noua_categorie.empty()) carte->setCategorie(noua_categorie);
+    if (noul_an > 0) carte->setAnAparitie(noul_an);
+    if (noile_pagini > 0) carte->setNrPagini(noile_pagini);
+    
+    return true;
+}
+
+bool Biblioteca::modificaUtilizator(const std::string& id, const std::string& noua_parola, const std::string& noul_nume, const std::string& noul_prenume, const std::string& noul_email, const std::string& noul_telefon, const std::string& noua_adresa) {
+    auto u = gasesteUtilizator(id);
+    if (!u) return false;
+    
+    if (!noua_parola.empty()) u->setParola(noua_parola);
+    if (!noul_nume.empty()) u->setNume(noul_nume);
+    if (!noul_prenume.empty()) u->setPrenume(noul_prenume);
+    if (!noul_email.empty()) u->setEmail(noul_email);
+    if (!noul_telefon.empty()) u->setTelefon(noul_telefon);
+    if (!noua_adresa.empty()) u->setAdresa(noua_adresa);
+    
+    return true;
+}
+
+void Biblioteca::incarcaBuget() {
+    std::ifstream f(fisier_buget);
+    if (f.is_open()) {
+        f >> buget;
+        f.close();
+    } else {
+        buget = 50000.0;
+        salveazaBuget();
+    }
+}
+
+void Biblioteca::salveazaBuget() const {
+    std::ofstream f(fisier_buget);
+    if (f.is_open()) {
+        f << buget;
+        f.close();
+    }
+}
+
+double Biblioteca::getBuget() const {
+    return buget;
+}
+
+double Biblioteca::calculeazaSalariiTotale() const {
+    double total = 0;
+    std::ifstream f(fisier_utilizatori);
+    std::string linie;
+    while (std::getline(f, linie)) {
+        auto campuri = splitLinie(linie, '|');
+        if (campuri.empty()) continue;
+        std::string tip = campuri[0];
+        if ((tip == "DIRECTOR" || tip == "BIBLIOTECAR" || tip == "INGRIJITOR") && campuri.size() >= 12) {
+            total += std::stod(campuri[11]);
+        }
+    }
+    return total;
+}
+
+void Biblioteca::simuleazaTrecereTimp(int saptamani) {
+    int cicluri = saptamani / 2;
+    if (cicluri == 0) return;
+    
+    double salarii = calculeazaSalariiTotale();
+    double cheltuieli_fixe = 5000.0;
+    
+    double venituri_stat = 25000.0;
+    double venituri_abonamente = 5000.0;
+    double venituri_donatii = 2000.0;
+    double venituri_totale = venituri_stat + venituri_abonamente + venituri_donatii;
+    
+    double total_per_ciclu = salarii + cheltuieli_fixe;
+    
+    for (int i = 0; i < cicluri; i++) {
+        buget += venituri_totale;
+        buget -= total_per_ciclu;
+    }
+    
+    offset_timp += saptamani * 7 * 24 * 3600;
+    
+    std::cout << "\n  [Simulare] Au trecut " << saptamani << " săptămâni (" << cicluri << " cicluri de plată).\n";
+    std::cout << "  " << "\033[32m" << "[+] Venituri încasate: " << venituri_totale * cicluri << " RON" << "\033[0m" << " (Stat: 15k, Abonamente: 2k, Donații: 1k per ciclu)\n";
+    std::cout << "  " << "\033[31m" << "[-] Salarii plătite: " << salarii * cicluri << " RON" << "\033[0m" << "\n";
+    std::cout << "  " << "\033[31m" << "[-] Cheltuieli administrative: " << cheltuieli_fixe * cicluri << " RON" << "\033[0m" << "\n";
+    std::cout << "  Buget nou: " << "\033[36m" << buget << " RON" << "\033[0m" << "\n";
+    
+    time_t virtual_time = getVirtualTime();
+    struct tm* ti = localtime(&virtual_time);
+    char buf[80];
+    strftime(buf, sizeof(buf), "%d/%m/%Y", ti);
+    std::cout << "  Data curentă în aplicație: " << "\033[33m" << buf << "\033[0m" << "\n";
+    
+    salveazaBuget();
+    salveazaTimp();
+}
+
+void Biblioteca::incarcaTimp() {
+    std::ifstream f(fisier_timp);
+    if (f.is_open()) {
+        f >> offset_timp;
+        f.close();
+    } else {
+        offset_timp = 0;
+        salveazaTimp();
+    }
+}
+
+void Biblioteca::salveazaTimp() const {
+    std::ofstream f(fisier_timp);
+    if (f.is_open()) {
+        f << offset_timp;
+        f.close();
+    }
+}
+
+time_t Biblioteca::getVirtualTime() const {
+    return time(nullptr) + offset_timp;
+}
+
+double Biblioteca::calculeazaPenalizariTotale(const std::string& id_cititor) const {
+    double total = 0;
+    auto u = gasesteCititor(id_cititor);
+    if (u) total += u->getPenalizari();
+    
+    for (const auto& imp : imprumuturi) {
+        if (imp.getIdCititor() == id_cititor) {
+            int zile = calculeazaZileIntarziere(imp.getTermenLimita());
+            if (zile > 0) {
+                total += zile * 2.0; // 2 RON pe zi
+            }
+        }
+    }
+    return total;
 }

@@ -11,23 +11,19 @@
 //  FUNCȚII UTILITARE
 // ═══════════════════════════════════════════════
 
-static std::string getDataCurenta() {
-    time_t rawtime;
-    struct tm * timeinfo;
+static std::string getDataCurenta(const Biblioteca& bib) {
+    time_t rawtime = bib.getVirtualTime();
+    struct tm * timeinfo = localtime(&rawtime);
     char buffer[80];
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
     strftime(buffer, sizeof(buffer), "%d/%m/%Y", timeinfo);
     return std::string(buffer);
 }
 
-static std::string getDataCurentaPlus(int zile) {
-    time_t rawtime;
-    struct tm * timeinfo;
-    char buffer[80];
-    time(&rawtime);
+static std::string getDataCurentaPlus(const Biblioteca& bib, int zile) {
+    time_t rawtime = bib.getVirtualTime();
     rawtime += zile * 24 * 60 * 60;
-    timeinfo = localtime(&rawtime);
+    struct tm * timeinfo = localtime(&rawtime);
+    char buffer[80];
     strftime(buffer, sizeof(buffer), "%d/%m/%Y", timeinfo);
     return std::string(buffer);
 }
@@ -42,36 +38,36 @@ static void clearScreen() {
 }
 
 static void pausare() {
-    std::cout << "\n  Apasă ENTER pentru a continua...";
+    std::cout << "\n  " << Color::Yellow << "Apasă ENTER pentru a continua..." << Color::Reset;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 static std::string citesteLinie(const std::string& prompt) {
-    std::cout << prompt;
+    std::cout << Color::Cyan << prompt << Color::Reset;
     std::string val;
     std::getline(std::cin, val);
     return val;
 }
 
 static int citesteInt(const std::string& prompt) {
-    std::cout << prompt;
+    std::cout << Color::Cyan << prompt << Color::Reset;
     int val;
     while (!(std::cin >> val)) {
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "  [!] Introduceți un număr valid: ";
+        std::cout << "  " << Color::Red << "❌ Introduceți un număr valid: " << Color::Reset;
     }
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return val;
 }
 
 static double citesteDouble(const std::string& prompt) {
-    std::cout << prompt;
+    std::cout << Color::Cyan << prompt << Color::Reset;
     double val;
     while (!(std::cin >> val)) {
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "  [!] Introduceți un număr valid: ";
+        std::cout << "  " << Color::Red << "❌ Introduceți un număr valid: " << Color::Reset;
     }
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     return val;
@@ -84,17 +80,19 @@ static double citesteDouble(const std::string& prompt) {
 static void afiseazaBanner(const std::shared_ptr<Utilizator>& curent = nullptr) {
     clearScreen();
     std::cout << "\n";
+    std::cout << Color::Cyan;
     std::cout << "  ╔══════════════════════════════════════════════════════════════╗\n";
     std::cout << "  ║                                                              ║\n";
-    std::cout << "  ║     📚  SISTEM DE GESTIUNE A BIBLIOTECII  📚                ║\n";
+    std::cout << "  ║     📚  " << Color::Bold << "SISTEM DE GESTIUNE A BIBLIOTECII" << Color::Reset << Color::Cyan << "  📚                ║\n";
     std::cout << "  ║                                                              ║\n";
     std::cout << "  ║         Versiune 2.1  ·  Cu Autentificare                    ║\n";
     std::cout << "  ║                                                              ║\n";
     if (curent) {
         std::cout << "  ╠══════════════════════════════════════════════════════════════╣\n";
-        std::cout << "  ║  Conectat ca: " << curent->getNumeComplet() << " (" << curent->getRol() << ")\n";
+        std::cout << "  ║  Conectat ca: " << Color::Green << curent->getNumeComplet() << " (" << curent->getRol() << ")" << Color::Cyan << "\n";
     }
     std::cout << "  ╚══════════════════════════════════════════════════════════════╝\n\n";
+    std::cout << Color::Reset;
 }
 
 // ═══════════════════════════════════════════════
@@ -105,7 +103,7 @@ static void adaugaCarteFizicaUI(Biblioteca& bib) {
     std::cout << "\n  ── Adaugă Carte Fizică ──────────────────\n\n";
     std::string titlu = citesteLinie("  Titlu: ");
     std::string auto_s = citesteLinie("  Autori (,): ");
-    std::string issn = citesteLinie("  ISSN: ");
+    std::string isbn = citesteLinie("  ISBN: ");
     double pret = citesteDouble("  Preț (RON): ");
     std::string serie = citesteLinie("  Serie: ");
     std::string poza = citesteLinie("  Poza path: ");
@@ -149,15 +147,17 @@ static void adaugaCarteFizicaUI(Biblioteca& bib) {
         }
     }
 
-    bib.adaugaCarteFizica(titlu, Carte::stringToAutori(auto_s), issn, pret, serie, poza, st, true, cat, an, pag, dim, g, coperta, loc);
-    std::cout << "\n  ✅ Adăugat cu succes!\n";
+    int stoc = citesteInt("  Stoc inițial: ");
+
+    bib.adaugaCarteFizica(titlu, Carte::stringToAutori(auto_s), isbn, pret, serie, poza, st, stoc, stoc, cat, an, pag, dim, g, coperta, loc);
+    std::cout << "\n  " << Color::Green << "✅ Adăugat cu succes!" << Color::Reset << "\n";
 }
 
 static void adaugaCarteDigitalaUI(Biblioteca& bib) {
     std::cout << "\n  ── Adaugă Carte Digitală ────────────────\n\n";
     std::string titlu = citesteLinie("  Titlu: ");
     std::string auto_s = citesteLinie("  Autori (,): ");
-    std::string issn = citesteLinie("  ISSN: ");
+    std::string isbn = citesteLinie("  ISBN: ");
     double pret = citesteDouble("  Preț (RON): ");
     std::string serie = citesteLinie("  Serie: ");
     std::string poza = citesteLinie("  Poza path: ");
@@ -172,8 +172,8 @@ static void adaugaCarteDigitalaUI(Biblioteca& bib) {
     std::string format = citesteLinie("  Format: ");
     double dim = citesteDouble("  Dimensiune (MB): ");
     std::string link = citesteLinie("  Link: ");
-    bib.adaugaCarteDigitala(titlu, Carte::stringToAutori(auto_s), issn, pret, serie, poza, st, true, cat, an, pag, format, dim, link);
-    std::cout << "\n  ✅ Adăugat cu succes!\n";
+    bib.adaugaCarteDigitala(titlu, Carte::stringToAutori(auto_s), isbn, pret, serie, poza, st, 999, 999, cat, an, pag, format, dim, link);
+    std::cout << "\n  " << Color::Green << "✅ Adăugat cu succes!" << Color::Reset << "\n";
 }
 
 static void stergeCarteUI(Biblioteca& bib) {
@@ -182,13 +182,81 @@ static void stergeCarteUI(Biblioteca& bib) {
     std::cout << "  ─────────────────────────────────────────\n";
     int nr = citesteInt("  Nr Carte (0 pt anulare): ");
     if (nr == 0) return;
-    std::string issn = bib.getIssnDupaIndex(nr);
-    if (issn.empty()) {
-        std::cout << "  ❌ Număr invalid.\n";
+    std::string isbn = bib.getIsbnDupaIndex(nr);
+    if (isbn.empty()) {
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
         return;
     }
-    if (bib.stergeCarte(issn)) std::cout << "  ✅ Șters!\n";
-    else std::cout << "  ❌ Eroare.\n";
+    if (bib.stergeCarte(isbn)) std::cout << "  " << Color::Green << "✅ Șters!" << Color::Reset << "\n";
+    else std::cout << "  " << Color::Red << "❌ Eroare." << Color::Reset << "\n";
+}
+
+static void modificaCarteUI(Biblioteca& bib) {
+    std::cout << "\n  ── Modifică Carte ───────────────────────\n";
+    bib.afiseazaInventarScurt(std::cout);
+    std::cout << "  ─────────────────────────────────────────\n";
+    int nr = citesteInt("  Nr Carte de modificat (0 pt anulare): ");
+    if (nr == 0) return;
+    
+    std::string isbn = bib.getIsbnDupaIndex(nr);
+    if (isbn.empty()) {
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
+        return;
+    }
+    
+    auto carte = bib.gasesteCarte(isbn);
+    if (!carte) return;
+    
+    std::cout << "\n  [Lăsați gol pentru a păstra valoarea curentă]\n";
+    
+    std::string titlu = citesteLinie("  Titlu nou (" + carte->getTitlu() + "): ");
+    std::string auto_s = citesteLinie("  Autori noi (" + carte->autoriToString() + "): ");
+    
+    std::string pret_str = citesteLinie("  Preț nou (" + std::to_string(carte->getPretIntrare()) + "): ");
+    double pret = pret_str.empty() ? 0 : std::stod(pret_str);
+    
+    std::string cat = citesteLinie("  Categorie nouă (" + carte->getCategorie() + "): ");
+    
+    std::string an_str = citesteLinie("  An nou (" + std::to_string(carte->getAnAparitie()) + "): ");
+    int an = an_str.empty() ? 0 : std::stoi(an_str);
+    
+    std::string pag_str = citesteLinie("  Pagini noi (" + std::to_string(carte->getNrPagini()) + "): ");
+    int pag = pag_str.empty() ? 0 : std::stoi(pag_str);
+    
+    std::vector<std::string> autori = auto_s.empty() ? std::vector<std::string>() : Carte::stringToAutori(auto_s);
+    
+    if (bib.modificaCarte(isbn, titlu, autori, pret, cat, an, pag)) {
+        std::cout << "  " << Color::Green << "✅ Cartea a fost modificată cu succes!" << Color::Reset << "\n";
+    } else {
+        std::cout << "  " << Color::Red << "❌ Eroare la modificarea cărții." << Color::Reset << "\n";
+    }
+}
+
+static void modificaUtilizatorUI(Biblioteca& bib) {
+    std::cout << "\n  ── Modifică Utilizator ───────────────────\n";
+    std::string id = citesteLinie("  Introduceți ID-ul utilizatorului de modificat: ");
+    if (id.empty()) return;
+    
+    auto u = bib.gasesteUtilizator(id);
+    if (!u) {
+        std::cout << "  " << Color::Red << "❌ Utilizatorul nu a fost găsit." << Color::Reset << "\n";
+        return;
+    }
+    
+    std::cout << "\n  [Lăsați gol pentru a păstra valoarea curentă]\n";
+    
+    std::string parola = citesteLinie("  Parolă nouă (" + u->getParola() + "): ");
+    std::string nume = citesteLinie("  Nume nou (" + u->getNume() + "): ");
+    std::string prenume = citesteLinie("  Prenume nou (" + u->getPrenume() + "): ");
+    std::string email = citesteLinie("  Email nou (" + u->getEmail() + "): ");
+    std::string telefon = citesteLinie("  Telefon nou (" + u->getTelefon() + "): ");
+    std::string adresa = citesteLinie("  Adresă nouă (" + u->getAdresa() + "): ");
+    
+    if (bib.modificaUtilizator(id, parola, nume, prenume, email, telefon, adresa)) {
+        std::cout << "  " << Color::Green << "✅ Utilizatorul a fost modificat cu succes!" << Color::Reset << "\n";
+    } else {
+        std::cout << "  " << Color::Red << "❌ Eroare la modificarea utilizatorului." << Color::Reset << "\n";
+    }
 }
 
 static void afiseazaRezultateCarte(const std::vector<std::shared_ptr<Carte>>& rezultate) {
@@ -208,6 +276,27 @@ static void cautaCarteUI(Biblioteca& bib) {
     }
 }
 
+static void vizualizareCatalogUI(Biblioteca& bib) {
+    afiseazaBanner();
+    std::cout << "\n  ── Inventar Cărți ────────────────────\n";
+    bib.afiseazaInventarScurt(std::cout);
+    std::cout << "  ─────────────────────────────────────────\n";
+    int nr = citesteInt("  Nr Carte pentru detalii (0 pt înapoi): ");
+    if (nr == 0) return;
+    
+    auto carte = bib.getCarteDupaIndex(nr);
+    if (!carte) {
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
+        return;
+    }
+    
+    afiseazaBanner();
+    std::cout << "\n  ── Detalii Carte ────────────────────\n\n";
+    carte->afisareCopertaASCII(std::cout);
+    std::cout << "\n";
+    carte->afisare(std::cout);
+}
+
 // ═══════════════════════════════════════════════
 // UI UTILIZATORI
 // ═══════════════════════════════════════════════
@@ -222,12 +311,12 @@ static void adaugaUtilizatorUI(Biblioteca& bib) {
     else if (opt == 2) bib.adaugaBibliotecar(id, p, n, pr, c, e, t, a, citesteLinie("  Sectie: "), citesteDouble("  Salariu: "), citesteLinie("  Data ang: "), citesteLinie("  Program: "), citesteInt("  Nr carti: "));
     else if (opt == 3) bib.adaugaIngrijitor(id, p, n, pr, c, e, t, a, citesteLinie("  Zona: "), citesteDouble("  Salariu: "), citesteLinie("  Data ang: "), citesteLinie("  Program: "), citesteLinie("  Echipament: "));
     else if (opt == 4) bib.adaugaCititor(id, p, n, pr, c, e, t, a, citesteLinie("  Abonament: "), citesteLinie("  Inregistrare: "), citesteLinie("  Expirare: "), citesteInt("  Max carti: "));
-    std::cout << "\n  ✅ Utilizator adăugat.\n";
+    std::cout << "\n  " << Color::Green << "✅ Utilizator adăugat." << Color::Reset << "\n";
 }
 
 static void stergeUtilizatorUI(Biblioteca& bib) {
-    if (bib.stergeUtilizator(citesteLinie("  ID: "))) std::cout << "  ✅ Șters.\n";
-    else std::cout << "  ❌ Eroare.\n";
+    if (bib.stergeUtilizator(citesteLinie("  ID: "))) std::cout << "  " << Color::Green << "✅ Șters." << Color::Reset << "\n";
+    else std::cout << "  " << Color::Red << "❌ Eroare." << Color::Reset << "\n";
 }
 
 // ═══════════════════════════════════════════════
@@ -240,18 +329,18 @@ static void imprumutaCarteUI(Biblioteca& bib) {
     std::cout << "  ─────────────────────────────────────────\n";
     int nr = citesteInt("  Nr Carte (0 pt anulare): ");
     if (nr == 0) return;
-    std::string issn = bib.getIssnDupaIndex(nr);
-    if (issn.empty()) {
-        std::cout << "  ❌ Număr invalid.\n";
+    std::string isbn = bib.getIsbnDupaIndex(nr);
+    if (isbn.empty()) {
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
         return;
     }
     std::string idCititor = citesteLinie("  ID Cititor: ");
-    std::string data = getDataCurenta();
-    std::string termen = getDataCurentaPlus(14);
+    std::string data = getDataCurenta(bib);
+    std::string termen = getDataCurentaPlus(bib, 14);
     std::string obs = citesteLinie("  Obs: ");
-    if (bib.adaugaImprumut(issn, idCititor, data, termen, obs)) {
-        std::cout << "  ✅ Împrumut înregistrat: " << data << " -> " << termen << ".\n";
-        auto carte = bib.gasesteCarte(issn);
+    if (bib.adaugaImprumut(isbn, idCititor, data, termen, obs)) {
+        std::cout << "  " << Color::Green << "✅ Împrumut înregistrat: " << data << " -> " << termen << "." << Color::Reset << "\n";
+        auto carte = bib.gasesteCarte(isbn);
         if (carte) {
             std::cout << "  ℹ️  Locație din care trebuie preluată: " << carte->getLocatieScurta() << "\n";
         }
@@ -266,12 +355,12 @@ static void returneazaCarteUI(Biblioteca& bib) {
     if (nr == 0) return;
     auto imp = bib.getImprumutDupaIndex(nr);
     if (!imp) {
-        std::cout << "  ❌ Număr invalid.\n";
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
         return;
     }
     if (bib.returneazaCarte(imp->getIdCarte(), imp->getIdCititor()))
-        std::cout << "  ✅ Returnare înregistrată.\n";
-    else std::cout << "  ❌ Eroare.\n";
+        std::cout << "  " << Color::Green << "✅ Returnare înregistrată." << Color::Reset << "\n";
+    else std::cout << "  " << Color::Red << "❌ Eroare." << Color::Reset << "\n";
 }
 
 static void imprumutaCarteCititorUI(Biblioteca& bib, const std::string& idCititor) {
@@ -280,16 +369,16 @@ static void imprumutaCarteCititorUI(Biblioteca& bib, const std::string& idCitito
     std::cout << "  ─────────────────────────────────────────\n";
     int nr = citesteInt("  Nr Carte (0 pt anulare): ");
     if (nr == 0) return;
-    std::string issn = bib.getIssnDupaIndex(nr);
-    if (issn.empty()) {
-        std::cout << "  ❌ Număr invalid.\n";
+    std::string isbn = bib.getIsbnDupaIndex(nr);
+    if (isbn.empty()) {
+        std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
         return;
     }
-    std::string data = getDataCurenta();
-    std::string termen = getDataCurentaPlus(14);
-    if (bib.adaugaImprumut(issn, idCititor, data, termen, "Auto-imprumut (14 zile)")) {
-        std::cout << "  ✅ Împrumut înregistrat automat până pe " << termen << ".\n";
-        auto carte = bib.gasesteCarte(issn);
+    std::string data = getDataCurenta(bib);
+    std::string termen = getDataCurentaPlus(bib, 14);
+    if (bib.adaugaImprumut(isbn, idCititor, data, termen, "Auto-imprumut (14 zile)")) {
+        std::cout << "  " << Color::Green << "✅ Împrumut înregistrat automat până pe " << termen << "." << Color::Reset << "\n";
+        auto carte = bib.gasesteCarte(isbn);
         if (carte) {
             if (carte->getTip() == "FIZICA") {
                 std::cout << "  🚶 Te așteptăm la bibliotecă să o ridici din: " << carte->getLocatieScurta() << "\n";
@@ -308,17 +397,17 @@ static void returneazaCarteCititorUI(Biblioteca& bib, const std::string& idCitit
     if (nr == 0) return;
     auto imp = bib.getImprumutDupaIndex(nr);
     if (!imp || imp->getIdCititor() != idCititor) {
-        std::cout << "  \u274c Numar invalid sau nu va apartine.\n";
+        std::cout << "  " << Color::Red << "❌ Număr invalid sau nu vă aparține." << Color::Reset << "\n";
         return;
     }
-    // Salveaza ISSN inainte de stergere din lista
-    std::string issn = imp->getIdCarte();
-    if (bib.solicitaReturnare(issn, idCititor)) {
-        std::cout << "\n  \u2705 Cerere de returnare inregistrata!\n";
-        std::cout << "  \u2139\ufe0f  Aduceti cartea la ghiseu.\n";
-        std::cout << "  \u23f3 Un bibliotecar o va confirma si o va reintroduce in stoc.\n";
+    // Salveaza ISBN inainte de stergere din lista
+    std::string isbn = imp->getIdCarte();
+    if (bib.solicitaReturnare(isbn, idCititor)) {
+        std::cout << "\n  " << Color::Green << "✅ Cerere de returnare înregistrată!" << Color::Reset << "\n";
+        std::cout << "  ℹ️  Aduceți cartea la ghișeu.\n";
+        std::cout << "  " << Color::Yellow << "⏳ Un bibliotecar o va confirma și o va reintroduce în stoc." << Color::Reset << "\n";
     } else {
-        std::cout << "  \u274c Eroare la inregistrarea returnarii.\n";
+        std::cout << "  " << Color::Red << "❌ Eroare la înregistrarea returnării." << Color::Reset << "\n";
     }
 }
 
@@ -338,44 +427,149 @@ static void confirmaReturnariUI(Biblioteca& bib) {
     std::cout << "  1. Confirma returnare (carte buna)\n";
     std::cout << "  2. Marcheaza carte DEFECTA (reintra in stoc, dar marcata defecta)\n";
     std::cout << "  0. Anuleaza\n";
-    int actiune = citesteInt("  Alege: ");
+    int actiune = citesteInt("  ➤ Alege o acțiune: ");
     if (actiune == 1) {
         if (bib.confirmaReturnare(static_cast<size_t>(nr)))
-            std::cout << "\n  \u2705 Returnare confirmata! Cartea a fost reintrodusa in stoc.\n";
+            std::cout << "\n  " << Color::Green << "✅ Returnare confirmată! Cartea a fost reintrodusă în stoc." << Color::Reset << "\n";
         else
-            std::cout << "  \u274c Numar invalid.\n";
+            std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
     } else if (actiune == 2) {
         if (bib.refuzaReturnareDefecta(static_cast<size_t>(nr)))
-            std::cout << "\n  \u26a0\ufe0f  Carte marcata DEFECTA si reintrodusa in stoc.\n";
+            std::cout << "\n  " << Color::Yellow << "⚠️  Carte marcată DEFECTĂ și reintrodusă în stoc." << Color::Reset << "\n";
         else
-            std::cout << "  \u274c Numar invalid.\n";
+            std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
     }
 }
 
+
+static void solicitaPlataUI(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) {
+    auto cititor = std::dynamic_pointer_cast<Cititor>(u);
+    if (!cititor) return;
+
+    double penalizari = bib.calculeazaPenalizariTotale(u->getId());
+    if (penalizari <= 0) {
+        std::cout << "  " << Color::Green << "✅ Nu aveți amenzi de plătit." << Color::Reset << "\n";
+        return;
+    }
+
+    std::cout << "\n  ── Solicitare Plată Amendă ────────────────\n\n";
+    std::cout << "  Suma datorată: " << Color::Red << penalizari << " RON" << Color::Reset << "\n";
+    std::cout << "  [INFO] Solicitarea va fi trimisă unui bibliotecar spre confirmare.\n";
+    
+    std::string confirm = citesteLinie("  Trimite solicitarea de plată? (da/nu): ");
+    if (confirm == "da") {
+        if (bib.solicitaPlata(cititor->getId())) {
+            std::cout << "  " << Color::Green << "✅ Solicitare trimisă! Te rugăm să mergi la ghișeu pentru a achita." << Color::Reset << "\n";
+        } else {
+            std::cout << "  " << Color::Yellow << "⚠ Există deja o solicitare în așteptare pentru acest cont." << Color::Reset << "\n";
+        }
+    }
+}
+
+static void confirmaPlatiUI(Biblioteca& bib) {
+    std::cout << "\n  ── Confirmare Plăți Amenzi ───────────────\n";
+    bib.afiseazaPlatiInAsteptare(std::cout);
+    
+    if (bib.getNumarPlatiInAsteptare() == 0) return;
+
+    int nr = citesteInt("  Alege Nr Cerere (0 pt anulare): ");
+    if (nr <= 0) return;
+
+    std::cout << "  [1] Confirmă Plata  [2] Refuză Cererea\n";
+    int actiune = citesteInt("  Alege acțiunea: ");
+
+    if (actiune == 1) {
+        if (bib.confirmaPlata(static_cast<size_t>(nr)))
+            std::cout << "\n  " << Color::Green << "✅ Plată confirmată. Cititorul poate împrumuta din nou!" << Color::Reset << "\n";
+        else
+            std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
+    } else if (actiune == 2) {
+        if (bib.refuzaPlata(static_cast<size_t>(nr)))
+            std::cout << "\n  " << Color::Yellow << "⚠ Cerere de plată refuzată." << Color::Reset << "\n";
+        else
+            std::cout << "  " << Color::Red << "❌ Număr invalid." << Color::Reset << "\n";
+    }
+}
+
+static void reconditioneazaCartiUI(Biblioteca& bib) {
+    std::cout << "\n  ── Recondiționare Cărți Defecte ─────────\n\n";
+    std::vector<std::string> isbn_defecte;
+    
+    const auto& defecte_map = bib.getStocDefect();
+    for (auto const& [isbn, count] : defecte_map) {
+        if (count > 0) {
+            auto c = bib.gasesteCarte(isbn);
+            if (c) {
+                isbn_defecte.push_back(isbn);
+                std::cout << "  [" << isbn_defecte.size() << "] " << c->getTitlu() 
+                          << " (ISBN: " << isbn << ") - Exemplare: " << count << "\n";
+            }
+        }
+    }
+
+    if (isbn_defecte.empty()) {
+        std::cout << "  " << Color::Green << "✅ Nu există cărți defecte în sistem." << Color::Reset << "\n";
+        return;
+    }
+
+    int nr = citesteInt("\n  Alege Nr Carte pentru recondiționare (0 pt anulare): ");
+    if (nr <= 0 || nr > isbn_defecte.size()) return;
+
+    if (bib.reparaCarte(isbn_defecte[nr - 1])) {
+        std::cout << "  " << Color::Green << "✅ Un exemplar a fost recondiționat și este acum disponibil!" << Color::Reset << "\n";
+    } else {
+        std::cout << "  " << Color::Red << "❌ Eroare la recondiționare." << Color::Reset << "\n";
+    }
+}
+
+
 static bool MeniuDirector(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) {
     afiseazaBanner(u);
-    std::cout << "  [Director] Acces complet\n";
-    std::cout << "  1.Adauga carte 2.Sterge carte 3.Inventar 4.Cauta carte\n";
-    std::cout << "  10.Adauga util. 11.Sterge util. 12.Afiseaza util.\n";
-    std::cout << "  20.Imprumuta 21.Returneaza (bibliotecar) 22.Lista imprumuturi\n";
-    std::cout << "  23.Confirma returnari in asteptare";
+    u->afisareCardBiblioteca(std::cout);
+    std::cout << "\n";
+    std::cout << "  " << Color::Cyan << "--- 📚 GESTIUNE CĂRȚI ---" << Color::Reset << "\n";
+    std::cout << "   1. Adaugă carte          3. Inventar\n";
+    std::cout << "   2. Șterge carte          4. Caută carte\n";
+    std::cout << "   5. Modifică carte\n\n";
+    std::cout << "  " << Color::Cyan << "--- 👥 GESTIUNE UTILIZATORI ---" << Color::Reset << "\n";
+    std::cout << "  10. Adaugă utilizator    12. Afișează utilizatori\n";
+    std::cout << "  11. Șterge utilizator    13. Modifică utilizator\n\n";
+    std::cout << "  " << Color::Cyan << "--- 💰 FINANȚE ---" << Color::Reset << "\n";
+    std::cout << "  30. Stare financiară     31. Simulează 2 săptămâni\n\n";
+    std::cout << "  " << Color::Cyan << "--- 📋 ÎMPRUMUTURI ȘI RETURURI ---" << Color::Reset << "\n";
+    std::cout << "  20. Împrumută            22. Listă împrumuturi\n";
+    std::cout << "  21. Returnează           23. Confirmă returnări";
     if (bib.getNumarReturnariInAsteptare() > 0)
-        std::cout << "  [" << bib.getNumarReturnariInAsteptare() << " in asteptare!]";
-    std::cout << "\n  0.Delogare\n";
+        std::cout << Color::Yellow << " [" << bib.getNumarReturnariInAsteptare() << " în așteptare!]" << Color::Reset;
+    std::cout << "\n  24. Confirmă Plăți Amenzi";
+    if (bib.getNumarPlatiInAsteptare() > 0)
+        std::cout << Color::Yellow << " [" << bib.getNumarPlatiInAsteptare() << " noi!]" << Color::Reset;
+    std::cout << "\n\n  " << Color::Cyan << "--- ⚙️ SISTEM ---" << Color::Reset << "\n";
+    std::cout << "   0. Delogare\n\n";
     
-    int opt = citesteInt("  Alege: ");
+    int opt = citesteInt("  ➤ Alege o opțiune: ");
     switch (opt) {
-        case 1: std::cout<<"1.Fizica 2.Digitala\n"; if(citesteInt("> ")==1) adaugaCarteFizicaUI(bib); else adaugaCarteDigitalaUI(bib); break;
+        case 1: std::cout<<"1.Fizica 2.Digitala\n"; if(citesteInt("  > ")==1) adaugaCarteFizicaUI(bib); else adaugaCarteDigitalaUI(bib); break;
         case 2: stergeCarteUI(bib); break;
-        case 3: bib.afiseazaInventarScurt(std::cout); break;
+        case 3: vizualizareCatalogUI(bib); break;
         case 4: cautaCarteUI(bib); break;
+        case 5: modificaCarteUI(bib); break;
         case 10: adaugaUtilizatorUI(bib); break;
         case 11: stergeUtilizatorUI(bib); break;
         case 12: bib.afiseazaUtilizatoriScurt(std::cout); break;
+        case 13: modificaUtilizatorUI(bib); break;
+        case 30: 
+            std::cout << "\n  [ Finanțe ] Buget curent: " << Color::Green << bib.getBuget() << " RON" << Color::Reset << "\n";
+            std::cout << "  Salarii totale (2 săpt): " << Color::Yellow << bib.calculeazaSalariiTotale() << " RON" << Color::Reset << "\n";
+            break;
+        case 31: 
+            bib.simuleazaTrecereTimp(2); 
+            break;
         case 20: imprumutaCarteUI(bib); break;
         case 21: returneazaCarteUI(bib); break;
         case 22: bib.afiseazaToateImprumuturile(std::cout); break;
         case 23: confirmaReturnariUI(bib); break;
+        case 24: confirmaPlatiUI(bib); break;
         case 0: return false;
     }
     if(opt != 0) pausare();
@@ -384,26 +578,38 @@ static bool MeniuDirector(Biblioteca& bib, const std::shared_ptr<Utilizator>& u)
 
 static bool MeniuBibliotecar(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) {
     afiseazaBanner(u);
-    std::cout << "  [Bibliotecar] Gestiune carti si imprumuturi\n";
-    std::cout << "  1.Adauga carte 2.Sterge carte 3.Inventar 4.Cauta carte\n";
-    std::cout << "  10.Afiseaza utilizatori\n";
-    std::cout << "  20.Imprumuta 21.Returneaza (imediat) 22.Lista imprumuturi\n";
-    std::cout << "  23.Confirma returnari in asteptare";
+    u->afisareCardBiblioteca(std::cout);
+    std::cout << "\n";
+    std::cout << "  " << Color::Cyan << "--- 📚 GESTIUNE CĂRȚI ---" << Color::Reset << "\n";
+    std::cout << "   1. Adaugă carte          3. Inventar\n";
+    std::cout << "   2. Șterge carte          4. Caută carte\n";
+    std::cout << "   5. Modifică carte\n\n";
+    std::cout << "  " << Color::Cyan << "--- 👥 GESTIUNE UTILIZATORI ---" << Color::Reset << "\n";
+    std::cout << "  10. Afișează utilizatori\n\n";
+    std::cout << "  " << Color::Cyan << "--- 📋 ÎMPRUMUTURI ȘI RETURURI ---" << Color::Reset << "\n";
+    std::cout << "  20. Împrumută            22. Listă împrumuturi\n";
+    std::cout << "  21. Returnează           23. Confirmă returnări";
     if (bib.getNumarReturnariInAsteptare() > 0)
-        std::cout << "  [" << bib.getNumarReturnariInAsteptare() << " in asteptare!]";
-    std::cout << "\n  0.Delogare\n";
+        std::cout << Color::Yellow << " [" << bib.getNumarReturnariInAsteptare() << " în așteptare!]" << Color::Reset;
+    std::cout << "\n  24. Confirmă Plăți Amenzi";
+    if (bib.getNumarPlatiInAsteptare() > 0)
+        std::cout << Color::Yellow << " [" << bib.getNumarPlatiInAsteptare() << " noi!]" << Color::Reset;
+    std::cout << "\n\n  " << Color::Cyan << "--- ⚙️ SISTEM ---" << Color::Reset << "\n";
+    std::cout << "   0. Delogare\n\n";
     
-    int opt = citesteInt("  Alege: ");
+    int opt = citesteInt("  ➤ Alege o opțiune: ");
     switch (opt) {
-        case 1: std::cout<<"1.Fizica 2.Digitala\n"; if(citesteInt("> ")==1) adaugaCarteFizicaUI(bib); else adaugaCarteDigitalaUI(bib); break;
+        case 1: std::cout<<"1.Fizica 2.Digitala\n"; if(citesteInt("  > ")==1) adaugaCarteFizicaUI(bib); else adaugaCarteDigitalaUI(bib); break;
         case 2: stergeCarteUI(bib); break;
-        case 3: bib.afiseazaInventarScurt(std::cout); break;
+        case 3: vizualizareCatalogUI(bib); break;
         case 4: cautaCarteUI(bib); break;
+        case 5: modificaCarteUI(bib); break;
         case 10: bib.afiseazaUtilizatoriScurt(std::cout); break;
         case 20: imprumutaCarteUI(bib); break;
         case 21: returneazaCarteUI(bib); break;
         case 22: bib.afiseazaToateImprumuturile(std::cout); break;
         case 23: confirmaReturnariUI(bib); break;
+        case 24: confirmaPlatiUI(bib); break;
         case 0: return false;
     }
     if(opt != 0) pausare();
@@ -413,15 +619,20 @@ static bool MeniuBibliotecar(Biblioteca& bib, const std::shared_ptr<Utilizator>&
 
 static bool MeniuIngrijitor(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) {
     afiseazaBanner(u);
-    std::cout << "  [Îngrijitor] Vizualizare resurse\n";
-    std::cout << "  1.Inventar cărți\n";
-    std::cout << "  2.Listă simplificată colegi\n";
-    std::cout << "  0.Delogare\n";
+    u->afisareCardBiblioteca(std::cout);
+    std::cout << "\n";
+    std::cout << "  " << Color::Cyan << "--- 📋 RESURSE ---" << Color::Reset << "\n";
+    std::cout << "   1. Inventar cărți\n";
+    std::cout << "   2. Listă simplificată colegi\n";
+    std::cout << "   3. Repară cărți defecte\n\n";
+    std::cout << "  " << Color::Cyan << "--- ⚙️ SISTEM ---" << Color::Reset << "\n";
+    std::cout << "   0. Delogare\n\n";
     
-    int opt = citesteInt("  Alege: ");
+    int opt = citesteInt("  ➤ Alege o opțiune: ");
     switch (opt) {
-        case 1: bib.afiseazaInventarScurt(std::cout); break;
+        case 1: vizualizareCatalogUI(bib); break;
         case 2: bib.afiseazaUtilizatoriScurt(std::cout); break;
+        case 3: reconditioneazaCartiUI(bib); break;
         case 0: return false;
     }
     if(opt != 0) pausare();
@@ -430,21 +641,34 @@ static bool MeniuIngrijitor(Biblioteca& bib, const std::shared_ptr<Utilizator>& 
 
 static bool MeniuCititor(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) {
     afiseazaBanner(u);
-    std::cout << "  [Cititor] Acces public\n";
-    std::cout << "  1.Inventar cărți\n";
-    std::cout << "  2.Caută carte\n";
-    std::cout << "  3.Vezi împrumuturile mele\n";
-    std::cout << "  4.Împrumută o carte\n";
-    std::cout << "  5.Returnează o carte\n";
-    std::cout << "  0.Delogare\n";
+    u->afisareCardBiblioteca(std::cout);
+    std::cout << "\n";
+    std::cout << "  " << Color::Cyan << "--- 📚 CATALOG ---" << Color::Reset << "\n";
+    std::cout << "   1. Inventar cărți\n";
+    std::cout << "   2. Caută carte\n\n";
+    std::cout << "  " << Color::Cyan << "--- 📋 ÎMPRUMUTURILE MELE ---" << Color::Reset << "\n";
+    std::cout << "   3. Vezi împrumuturile mele\n";
+    std::cout << "   4. Împrumută o carte\n";
+    std::cout << "   5. Returnează o carte\n\n";
+
+    auto cititor = std::dynamic_pointer_cast<Cititor>(u);
+    double penalizari = bib.calculeazaPenalizariTotale(u->getId());
+    if (cititor && penalizari > 0) {
+        std::cout << "  " << Color::Red << "⚠  AMENDĂ DE PLATĂ: " << penalizari << " RON" << Color::Reset << "\n";
+        std::cout << "   6. Solicită plată amendă\n\n";
+    }
+
+    std::cout << "  " << Color::Cyan << "--- ⚙️ CONT ---" << Color::Reset << "\n";
+    std::cout << "   0. Delogare\n\n";
     
-    int opt = citesteInt("  Alege: ");
+    int opt = citesteInt("  ➤ Alege o opțiune: ");
     switch (opt) {
-        case 1: bib.afiseazaInventarScurt(std::cout); break;
+        case 1: vizualizareCatalogUI(bib); break;
         case 2: cautaCarteUI(bib); break;
         case 3: bib.afiseazaImprumuturiCititor(std::cout, u->getId()); break;
         case 4: imprumutaCarteCititorUI(bib, u->getId()); break;
         case 5: returneazaCarteCititorUI(bib, u->getId()); break;
+        case 6: solicitaPlataUI(bib, u); break;
         case 0: return false;
     }
     if(opt != 0) pausare();
@@ -456,7 +680,7 @@ static bool MeniuCititor(Biblioteca& bib, const std::shared_ptr<Utilizator>& u) 
 // ═══════════════════════════════════════════════
 
 int main() {
-    Biblioteca bib("db_carti.txt", "db_imprumuturi.txt", "db_utilizatori.txt");
+    Biblioteca bib("db_carti.txt", "db_imprumuturi.txt", "db_utilizatori.txt", "db_returnari.txt", "db_plati.txt", "db_defecte.txt");
 
     while (true) {
         afiseazaBanner();
@@ -474,7 +698,7 @@ int main() {
             continue;
         }
 
-        std::cout << "\n  ✅ Autentificare reușită! Bine ai venit, " << u->getPrenume() << "!\n";
+        std::cout << "\n  " << Color::Green << "✅ Autentificare reușită! Bine ai venit, " << u->getPrenume() << "!" << Color::Reset << "\n";
         pausare();
 
         std::string tip = u->getTip();

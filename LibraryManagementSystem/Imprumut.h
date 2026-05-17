@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────
 class Imprumut {
 private:
-    std::string id_carte_imprumutata;   // ISSN-ul cărții
+    std::string id_carte_imprumutata;   // ISBN-ul cărții
     std::string id_cititor;             // ID-ul cititorului
     std::string nume_cititor;           // Nume complet (pentru afișare rapidă)
     std::string data_imprumut;          // format: DD/MM/YYYY

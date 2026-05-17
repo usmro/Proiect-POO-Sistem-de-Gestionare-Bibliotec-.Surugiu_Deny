@@ -61,6 +61,8 @@ public:
     virtual std::string getTip() const = 0;
     virtual std::string getRol() const = 0;
 
+    void afisareCardBiblioteca(std::ostream& os) const;
+
     friend std::ostream& operator<<(std::ostream& os, const Utilizator& u);
 };
 

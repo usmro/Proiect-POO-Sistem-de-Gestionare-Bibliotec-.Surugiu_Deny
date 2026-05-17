@@ -11,12 +11,12 @@ CarteFizica::CarteFizica()
 //  Constructor parametrizat
 // ─────────────────────────────────────────────
 CarteFizica::CarteFizica(const std::string& titlu, const std::vector<std::string>& autori,
-                         const std::string& issn, double pret, const std::string& serie,
-                         const std::string& poza, StareCarte stare, bool disp,
+                         const std::string& isbn, double pret, const std::string& serie,
+                         const std::string& poza, StareCarte stare, int stoc_tot, int stoc_disp,
                          const std::string& categorie, int an_aparitie, int nr_pagini,
                          const std::string& format_dim, double greutate,
                          const std::string& tip_coperta, const Locatie& loc)
-    : Carte(titlu, autori, issn, pret, serie, poza, stare, disp, categorie, an_aparitie, nr_pagini),
+    : Carte(titlu, autori, isbn, pret, serie, poza, stare, stoc_tot, stoc_disp, categorie, an_aparitie, nr_pagini),
       format_dimensiuni(format_dim), greutate(greutate),
       tip_coperta(tip_coperta), locatie(loc) {}
 
@@ -50,14 +50,14 @@ void CarteFizica::afisare(std::ostream& os) const {
     os << "══════════════════════════════════════════\n";
     os << "  Titlu:           " << titlu << "\n";
     os << "  Autori:          " << autoriToString() << "\n";
-    os << "  ISSN:            " << issn << "\n";
+    os << "  ISBN:            " << isbn << "\n";
     os << "  Categorie:       " << categorie << "\n";
     os << "  An apariție:     " << an_aparitie << "\n";
     os << "  Nr. pagini:      " << nr_pagini << "\n";
     os << "  Preț intrare:    " << std::fixed << std::setprecision(2) << pret_intrare << " RON\n";
     os << "  Serie contabilă: " << serie_contabila << "\n";
     os << "  Stare:           " << stareToString(stare_carte) << "\n";
-    os << "  Disponibilă:     " << (disponibilitate ? "Da" : "Nu") << "\n";
+    os << "  Stoc disponibil: " << stoc_disponibil << " / " << stoc_total << "\n";
     os << "  ────────────────────────────────────\n";
     os << "  Dimensiuni:      " << format_dimensiuni << "\n";
     os << "  Greutate:        " << greutate << " g\n";
@@ -77,12 +77,12 @@ std::string CarteFizica::formatFisier() const {
     oss << "FIZICA|"
         << titlu << "|"
         << autoriToString() << "|"
-        << issn << "|"
+        << isbn << "|"
         << pret_intrare << "|"
         << serie_contabila << "|"
         << poza_path << "|"
         << stareToString(stare_carte) << "|"
-        << (disponibilitate ? "1" : "0") << "|"
+        << stoc_disponibil << "|" << stoc_total << "|"
         << categorie << "|"
         << an_aparitie << "|"
         << nr_pagini << "|"
