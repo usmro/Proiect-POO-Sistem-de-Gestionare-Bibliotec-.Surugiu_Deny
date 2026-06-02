@@ -1,0 +1,8 @@
+DIRECTOR|DIR001|admin|Surugiu|Deny|2850315400123|deny.surugiu@biblio.ro|0721000001|Str. Culturii nr. 1|1|Management General|8500|01/03/2015|Etaj 3 Birou 301|5
+BIBLIOTECAR|BIB001|parola123|Popescu|Andrei|1900722400234|andrei.popescu@biblio.ro|0721000002|Str. Cărții nr. 10|1|Literatură Română|4500|15/09/2018|08:00-16:00|150
+BIBLIOTECAR|BIB002|parola123|Marinescu|Elena|2920115400345|elena.marinescu@biblio.ro|0721000003|Bd. Lecturii nr. 5|1|Știință și Tehnologie|4200|01/02/2020|12:00-20:00|95
+INGRIJITOR|ING001|curatenie|Dumitrescu|Vasile|1880930400456|vasile.d@biblio.ro|0721000004|Str. Muncii nr. 22|1|Etaj 1-2 Bibliotecă Centrală|3200|10/06/2019|06:00-14:00|Set curățenie standard + aspirator industrial
+INGRIJITOR|ING002|curatenie|Stan|Gheorghe|1850412400567|gheorghe.stan@biblio.ro|0721000005|Str. Plopilor nr. 8|1|Curte exterioară și parcare|3000|01/11/2021|06:00-14:00|Set grădinărit + mașină tuns gazon
+CITITOR|CIT001|cititor1|Vasilescu|Ana|2960805400678|ana.vasilescu@gmail.com|0731000001|Str. Trandafirilor nr. 3|1|premium|01/01/2026|01/01/2027|5|1|38.33
+CITITOR|CIT002|cititor2|Radu|Mihai|1980225400789|mihai.radu@yahoo.com|0731000002|Bd. Unirii nr. 44|1|standard|15/03/2026|15/03/2027|3|0|0
+CITITOR|CIT003|cititor3|Georgescu|Ioana|2010930400890|ioana.g@student.ro|0731000003|Cămin A Camera 215|1|student|01/10/2025|30/06/2026|3|0|0
