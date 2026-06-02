@@ -1,0 +1,16 @@
+CIT001|Cartea ta rezervata este disponibila pentru ridicare!|01/06/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 70 RON pentru 14 zile.|29/06/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 70 RON pentru 14 zile.|29/06/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 70 RON pentru 14 zile.|29/06/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 150 RON pentru 30 zile.|29/07/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 150 RON pentru 30 zile.|29/07/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 150 RON pentru 30 zile.|29/07/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 140 RON pentru 28 zile.|26/08/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 140 RON pentru 28 zile.|26/08/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 140 RON pentru 28 zile.|26/08/2026|0
+CIT001|Cartea ta rezervata este disponibila pentru ridicare!|26/08/2026|0
+CIT001|Cartea ta rezervata este disponibila pentru ridicare!|26/08/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 16 RON pentru 16 zile.|25/09/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 16 RON pentru 16 zile.|25/09/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 16 RON pentru 16 zile.|25/09/2026|0
+CIT001|Avertisment: Intarziere retur! Penalizare: 16 RON pentru 16 zile.|25/09/2026|0

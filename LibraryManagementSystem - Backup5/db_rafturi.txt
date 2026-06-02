@@ -1,0 +1,22 @@
+Centrala-Sala Românească-Culoar A-Raft 1|Centrala|Sala Românească|Culoar A|Raft 1|100
+Centrala-Sala Românească-Culoar A-Raft 2|Centrala|Sala Românească|Culoar A|Raft 2|100
+Centrala-Sala Universală-Culoar B-Raft 1|Centrala|Sala Universală|Culoar B|Raft 1|100
+Centrala-Sala Universală-Culoar B-Raft 2|Centrala|Sala Universală|Culoar B|Raft 2|100
+Filiala N-Sala SF-Culoar A-Raft 1|Filiala N|Sala SF|Culoar A|Raft 1|100
+Filiala N-Sala SF-Culoar A-Raft 2|Filiala N|Sala SF|Culoar A|Raft 2|100
+Filiala N-Sala Mister-Culoar B-Raft 1|Filiala N|Sala Mister|Culoar B|Raft 1|100
+Filiala N-Sala Mister-Culoar B-Raft 2|Filiala N|Sala Mister|Culoar B|Raft 2|100
+Centrala-Sala Lectură-Culoar C-Raft 1|Centrala|Sala Lectură|Culoar C|Raft 1|100
+Centrala-Sala Lectură-Culoar C-Raft 2|Centrala|Sala Lectură|Culoar C|Raft 2|100
+Filiala S-Sala Modernă-Culoar A-Raft 1|Filiala S|Sala Modernă|Culoar A|Raft 1|100
+Filiala S-Sala Modernă-Culoar A-Raft 2|Filiala S|Sala Modernă|Culoar A|Raft 2|100
+Filiala S-Sala Modernă-Culoar A-Raft 3|Filiala S|Sala Modernă|Culoar A|Raft 3|100
+Filiala S-Sala Istorică-Culoar B-Raft 1|Filiala S|Sala Istorică|Culoar B|Raft 1|100
+Filiala S-Sala Istorică-Culoar B-Raft 2|Filiala S|Sala Istorică|Culoar B|Raft 2|100
+Centrala-Sala Arte-Culoar D-Raft 1|Centrala|Sala Arte|Culoar D|Raft 1|100
+Centrala-Sala Arte-Culoar D-Raft 2|Centrala|Sala Arte|Culoar D|Raft 2|100
+Filiala S-Sala Bestseller-Culoar C-Raft 1|Filiala S|Sala Bestseller|Culoar C|Raft 1|100
+Filiala N-Sala SF-Culoar C-Raft 1|Filiala N|Sala SF|Culoar C|Raft 1|100
+Filiala N-Sala SF-Culoar C-Raft 2|Filiala N|Sala SF|Culoar C|Raft 2|100
+Centrala-Sala Business-Culoar E-Raft 1|Centrala|Sala Business|Culoar E|Raft 1|100
+Centrala-Sala Business-Culoar E-Raft 2|Centrala|Sala Business|Culoar E|Raft 2|100
