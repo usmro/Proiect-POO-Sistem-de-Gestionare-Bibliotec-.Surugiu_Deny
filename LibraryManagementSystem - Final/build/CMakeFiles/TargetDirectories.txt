@@ -1,0 +1,5 @@
+/mnt/b/LibraryManagementSystem - Backup6/build/CMakeFiles/biblioteca_qt.dir
+/mnt/b/LibraryManagementSystem - Backup6/build/CMakeFiles/edit_cache.dir
+/mnt/b/LibraryManagementSystem - Backup6/build/CMakeFiles/rebuild_cache.dir
+/mnt/b/LibraryManagementSystem - Backup6/build/CMakeFiles/biblioteca_qt_autogen_timestamp_deps.dir
+/mnt/b/LibraryManagementSystem - Backup6/build/CMakeFiles/biblioteca_qt_autogen.dir
