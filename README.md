@@ -1,79 +1,84 @@
-# Library Management System
+# 📚 Library Management System (LMS)
 
-![C++](https://img.shields.io/badge/C++-17-blue.svg)
-![Qt](https://img.shields.io/badge/Qt-5.15%2B-green.svg)
-![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey.svg)
-![CMake](https://img.shields.io/badge/CMake-3.10%2B-orange.svg)
+![C++](https://img.shields.io/badge/C++-17-blue.svg?style=for-the-badge&logo=c%2B%2B)
+![Qt](https://img.shields.io/badge/Qt-5.15%2B-41CD52.svg?style=for-the-badge&logo=qt)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57.svg?style=for-the-badge&logo=sqlite)
+![CMake](https://img.shields.io/badge/CMake-3.10%2B-064F8C.svg?style=for-the-badge&logo=cmake)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20Mac-lightgrey.svg?style=for-the-badge)
 
-**Library Management System** este o platformă software desktop robustă, dezvoltată în C++17 și Qt, proiectată pentru a gestiona integral fluxul operațional al unei biblioteci moderne. Acoperă administrarea membrilor, sistemul de împrumuturi și retururi (inclusiv tonomate automate), penalizările de întârziere (bază de date dependentă de un ceas simulat dinamic), un catalog vast de medii (fizice, e-book, audiobook) și un backend financiar complet.
+**Library Management System** este o platformă software completă și robustă, dezvoltată în **C++17**, proiectată pentru a digitaliza și automatiza integral fluxul operațional al unei biblioteci moderne. 
 
----
-
-## 🏗️ 1. Arhitectura Aplicației
-
-Sistemul a fost construit folosind principiile **Programării Orientate pe Obiect (OOP)** — Abstractizare, Încapsulare, Moștenire și Polimorfism — asigurând un cod curat, scalabil și flexibil.
-
-### Structura Claselor Principale (UML Simplificat)
-
-1. **`Biblioteca`** (Clasa Singleton/Manager)
-   Gestionează toate listele de obiecte în memorie și sincronizarea lor cu baza de date SQLite (`biblioteca.db`). Deține controlul central al logicii de business.
-   
-2. **Ierarhia `Utilizator`** (Polimorfism pe roluri)
-   ```mermaid
-   graph TD;
-       Utilizator-->Director;
-       Utilizator-->Bibliotecar;
-       Utilizator-->Cititor;
-       Utilizator-->Ingrijitor;
-   ```
-   *Rolurile definesc acțiunile permise pe interfața UI: de ex. Directorul poate executa plăți, Bibliotecarul gestionează catalogul și retururile.*
-
-3. **Ierarhia `Carte`** (Polimorfism pe resurse)
-   ```mermaid
-   graph TD;
-       Carte-->CarteFizica;
-       Carte-->CarteDigitala;
-       Carte-->CarteAudio;
-   ```
+Proiectul se distinge printr-o arhitectură duală hibridă, oferind atât o **Interfață Grafică Premium (GUI)** bazată pe Qt, cât și o **Interfață pe Bază de Text (TUI/CLI)** integrată direct în terminal pentru medii server sau depanare.
 
 ---
 
-## 🔒 2. Securitate: Sistemul de Autentificare și Criptare (XOR)
+## 📑 Cuprins
+1. [Funcționalități Principale](#-1-funcționalități-principale)
+2. [Arhitectura și Design Patterns](#-2-arhitectura-și-design-patterns)
+3. [Arhitectura Duală (GUI vs CLI)](#-3-arhitectura-duală-gui-vs-cli)
+4. [Sistemul de Securitate](#-4-sistemul-de-securitate-și-criptare)
+5. [Structura Bazei de Date SQLite](#-5-structura-bazei-de-date-sqlite)
+6. [Gestiunea Timpului și Financiară](#-6-gestiunea-timpului-și-financiară)
+7. [Instrucțiuni de Compilare și Rulare](#-7-instrucțiuni-de-compilare-și-rulare)
+8. [Structura Proiectului (Fișiere)](#-8-structura-proiectului)
 
-Toate parolele din sistem sunt criptate folosind o cheie statică prin algoritmul **XOR**, stocate sub formă de șiruri hexazecimale în fișierul `.db`. Autentificarea permite utilizarea fie a **ID**-ului unic, fie a **Adresei de Email**.
+---
 
-### Fragment de Cod: Algoritmul de Criptare (`Utilizator.cpp`)
-```cpp
-std::string Utilizator::xorEncode(const std::string& text) {
-    const std::string cheie = "BibliotecaSecreta2025";
-    std::string result = text;
-    // Criptare pe baza cheii
-    for (size_t i = 0; i < text.size(); i++) {
-        result[i] = text[i] ^ cheie[i % cheie.size()];
-    }
-    return toHex(result); // Transformare in format Hexazecimal
-}
+## ✨ 1. Funcționalități Principale
 
-bool Utilizator::verificaParola(const std::string& p) const {
-    // Verificam parola in clar trecand-o prin acelasi algoritm si comparand hash-urile
-    return parola == xorEncode(p); 
-}
-```
+- **Gestiunea Utilizatorilor (RBAC):** Sistem de acces bazat pe roluri (Director, Bibliotecar, Îngrijitor, Cititor), fiecare cu ecrane, dashboard-uri și permisiuni unice.
+- **Catalog Multi-Media:** Suport nativ pentru Cărți Fizice (cu locație exactă pe rafturi), Cărți Digitale (eBooks PDF/ePub cu stoc nelimitat) și Audiobook-uri.
+- **Sistem de Tonomat pentru Retururi:** Cărțile returnate intră într-o „Coadă de Așteptare” pentru a fi inspectate fizic de un bibliotecar înainte de a fi reintroduse pe raft.
+- **Casare și Mentenanță:** Gestionarea cărților degradate și mutarea logică a volumelor între rafturi sau săli de lectură.
+- **Simulare Temporală:** Un „ceas intern” independent de sistemul de operare care permite testarea fluxurilor, generarea automată a amenzilor și plata salariilor la trecerea timpului.
+- **Jurnal de Audit Incoruptibil:** Toate acțiunile din sistem sunt înregistrate tăcut într-o bază de date securizată accesibilă doar Directorului.
 
-### Fragment de Cod: Autentificarea Hibridă (`Biblioteca.cpp`)
+---
+
+## 🏗️ 2. Arhitectura și Design Patterns
+
+Sistemul a fost construit folosind principii solide de **Software Engineering** (SOLID) și **Programare Orientată pe Obiect (OOP)**.
+
+### Design Patterns Utilizate:
+1. **Repository / Manager Pattern:** Clasa centrală `Biblioteca` acționează ca un *Single Source of Truth*, gestionând toate instanțele în memorie și sincronizând stările obiectelor direct cu baza de date SQLite.
+2. **Polimorfism Dinamic:**
+   - **Ierarhia `Utilizator`**: Metodele virtuale adaptează accesul la meniuri (`Director`, `Bibliotecar`, etc.).
+   - **Ierarhia `Carte`**: Metode specifice pentru tipul resurselor (ex: doar `CarteFizica` are `LocatieRaft`, în timp ce `CarteAudio` are `Durata`). `std::dynamic_pointer_cast` este folosit extensiv pentru a extrage proprietățile unice la runtime.
+3. **Delegation / Strategy (în UI):** Funcțiile care desenează paginile Qt sunt delegate prin funcții anonime (lambdas) către componente specializate (`QtFunc`).
+
+---
+
+## 🖥️ 3. Arhitectura Duală (GUI vs CLI)
+
+Proiectul oferă o decuplare totală a logicii de business față de interfața vizuală. Aceasta se reflectă în existența a două build-uri diferite din același cod sursă de bază:
+
+### A. Varianta Desktop (Qt6)
+Construită pe arhitectura Semnal-Slot din Qt. Dispune de o tematică modernă (stilizată prin QSS - Qt Style Sheets), ferestre modale, layout-uri adaptive (Grid, VBox), panouri de notificări și tabele sortabile dinamic. (*Compilat prin: `biblioteca_qt`*)
+
+### B. Varianta Terminal (TUI)
+O interfață text complet customizată implementată în `ConsoleUI.cpp`. Evită comenzile banale de tip `std::cin` și folosește manipulări de buffere ANSI / Termios pentru a crea "ferestre" pop-up, liste paginate și butoane selectabile folosind doar text (ASCII Art). (*Compilat prin: `app`*)
+
+---
+
+## 🔒 4. Sistemul de Securitate și Criptare
+
+Toate parolele din sistem sunt criptate folosind un algoritm didactic **XOR Hashing**, urmat de o encodare **Hexazecimală**, prevenind stocarea în clar a datelor vulnerabile.
+
+**Snippet - Verificarea Hibridă a Autentificării:**
 ```cpp
 std::shared_ptr<Utilizator> Biblioteca::autentificare(const std::string& id_or_email, const std::string& parola) const {
     auto u = gasesteUtilizator(id_or_email);
-    if (!u) { // Daca nu s-a gasit dupa ID (ex: CIT001), cautam dupa adresa de email
+    if (!u) { 
+        // Dacă login-ul nu este de tip "CIT001", căutăm iterativ adresa de email
         for (const auto& util : utilizatori) {
             if (util->getEmail() == id_or_email) {
                 u = util; break;
             }
         }
     }
-    // Daca s-a gasit contul, validam criptografic parola:
+    // Validare folosind trecerea parolei scrise prin filtrul XOR și compararea cu Hash-ul DB
     if (u && u->verificaParola(parola) && u->getActiv()) {
-        scrieLaLog(u->getId(), "AUTENTIFICARE: " + u->getRol());
+        scrieLaLog(u->getId(), "AUTENTIFICARE SUCCES: " + u->getRol());
         return u;
     }
     return nullptr;
@@ -82,110 +87,83 @@ std::shared_ptr<Utilizator> Biblioteca::autentificare(const std::string& id_or_e
 
 ---
 
-## ⏳ 3. Gestiunea Timpului și Sistemul de Amenzi
+## 🗄️ 5. Structura Bazei de Date SQLite
 
-Sistemul implementează propriul său ceas intern independent de cel al PC-ului (Simulare Timp). Atunci când zilele trec, aplicația iterază automat peste împrumuturile active și aplică penalizări (1 RON / Zi).
+Sistemul elimină dependența de servere SQL mari utilizând librăria portabilă `sqlite3.h`. Toate modificările din memorie sunt trimise tranzacțional către fișierul local `biblioteca.db`.
 
-### Fragment de Cod: Aplicarea Automată a Penalizărilor
-```cpp
-void Biblioteca::avanseazaTimp(int zile) {
-    auto t = QDateTime::fromString(QString::fromStdString(data_curenta), "dd/MM/yyyy");
-    t = t.addDays(zile);
-    data_curenta = t.toString("dd/MM/yyyy").toStdString();
-    salveazaDataCurenta();
-
-    // Actualizare dinamica a intarzierilor:
-    for (auto& imp : imprumuturi) {
-        int zile_intarziere = calculeazaZileIntarziere(imp.getTermenLimita());
-        if (zile_intarziere > 0) {
-            double penalizare = zile_intarziere * 1.0; // Amenda 1 RON pe zi
-            auto cit = gasesteCititor(imp.getIdCititor());
-            if (cit) {
-                cit->setPenalizari(cit->getPenalizari() + penalizare);
-                adaugaNotificare(cit->getId(), "Penalizare aplicată: " + std::to_string(penalizare) + " RON.");
-            }
-            // Resetam limita la ziua curenta pentru ca amenda se va percepe din nou maine
-            imp.setTermenLimita(getDataCurentaStr());
-        }
-    }
-}
-```
+| Tabel / Entitate | Descriere și Rol |
+| :--- | :--- |
+| **`Utilizatori`** | Conține ID, Rol, Nume, Date Contact, Parola(Hash), Abonament. |
+| **`Carti`** | Parametrii universali: ISBN, Titlu, Tip, Stoc. Parametri specifici se stochează sub format string/JSON sau câmpuri flexibile. |
+| **`Rafturi`** | Structura ierarhică fizică (Clădire -> Sală -> Culoar -> Raft). |
+| **`Imprumuturi`** | Tranzacții active. Leagă un `ID_Utilizator` de un `ISBN` cu un *Termen Limita*. |
+| **`ReturnariInAsteptare`**| Tabela temporară pentru Tonomat. Reține cărțile depuse fizic dar nevalidate încă de staff. |
+| **`Loguri`** | Jurnalul "Write-Only" pentru auditul sistemului. |
 
 ---
 
-## 🔄 4. Fluxul de Împrumut și Returnări (Sistem Tonomat)
+## ⏳ 6. Gestiunea Timpului și Financiară
 
-Returnarea unei cărți nu o bagă direct pe raft. Ea trece printr-o coadă temporară `ReturnariInAsteptare`. Bibliotecarul este responsabil să valideze starea materială a cărții returnate.
-
-### Fragment de Cod: Procesarea Returnării în Coadă
-```cpp
-bool Biblioteca::solicitaReturnare(const std::string& isbn, const std::string& id_cititor) {
-    auto it = std::find_if(imprumuturi.begin(), imprumuturi.end(), [&](const Imprumut& i) {
-        return i.getIdCarte() == isbn && i.getIdCititor() == id_cititor;
-    });
-    
-    if (it != imprumuturi.end()) {
-        std::string titlu = gasesteCarte(isbn)->getTitlu();
-        std::string nume = gasesteUtilizator(id_cititor)->getNumeComplet();
-        
-        // Verificam pe loc daca e intarziata in momentul in care s-a pus la tonomat:
-        double amenda = 0.0;
-        int zile = calculeazaZileIntarziere(it->getTermenLimita());
-        if (zile > 0) amenda = zile * 1.0; 
-        
-        // Cream intrarea in tabelul temporar
-        ReturnareInAsteptare r = { isbn, id_cititor, nume, titlu, getDataCurentaStr(), amenda };
-        returnari_in_asteptare.push_back(r);
-        return true;
-    }
-    return false;
-}
-```
-
-### Acceptare sau Refuz Carte (Bussines Logic Bibliotecar)
-- **Confirmare:** Se eliberează stocul, se procesează amenda (dacă există) și dispare cartea din portofoliul utilizatorului.
-- **Refuz:** Se marchează starea fizică drept `Defectă`. Cartea trebuie recondiționată sau casată din gestiune, iar cititorul primește imediat amenda pe valoarea cărții (înlocuire).
+Biblioteca nu depinde de data calculatorului tău pentru a sancționa utilizatorii. Modulul de "Simulare Timp" permite administratorilor să "sară" în viitor. 
+1. **Sistemul de Amenzi:** Dacă se sare o lună, motorul iterează peste împrumuturi și aplică **1 RON pentru fiecare zi de întârziere**. Penalizările sunt lipite de contul utilizatorului.
+2. **Plata Salariilor:** O dată pe lună (pe data de 15 a datei simulate), Directorul trebuie să efectueze plata salariilor personalului. Banii sunt sustrași automat din *Bugetul Global*.
+3. **Venituri:** Bugetul crește strict din colectarea amenzilor de la utilizatorii neglijenți.
 
 ---
 
-## 📊 5. Modulul de Bază de Date (SQLite Schema)
+## 🛠️ 7. Instrucțiuni de Compilare și Rulare
 
-Aplicația se bazează pe o singură conexiune unificată. Există scheme relaționale pentru:
-- `Utilizatori` (PK: id, rol, date_personale, parola_hash, abonament)
-- `Carti` (PK: isbn, tip, autor, stoc, stare, url/durata)
-- `Rafturi` & `CartiRafturi` (One-to-Many mapare între locația fizică și volum)
-- `Imprumuturi`, `ReturnariInAsteptare` & `Rezervari` (Tranzacții)
-- `Sistem` (Constante, ex: Data simulată și Buget Total)
-- `Loguri` (Jurnal invizibil pentru Auditul Directorului)
+Acest proiect necesită un compilator C++ compatibil **C++17** și sistemul de build **CMake**. 
 
----
+### Condiții prealabile:
+- [Qt 5.15 sau Qt 6.x](https://www.qt.io/) (Module Necesare: `Core`, `Gui`, `Widgets`)
+- MinGW / GCC / Clang
+- CMake 3.16+
 
-## 🎨 6. Interfața Grafică (Qt Widgets)
-
-UI-ul utilizează clase personalizate pentru un aspect imersiv, cu elemente tip Card (`QFrame`), Grid Layouts și Styling avansat via `QSS`. Butoanele de meniu stau într-un `QStackedWidget` cu side-navigation. Layout-ul se generează **dinamic** apelând rutine de UI separate (`QtMainWindow::createDashboardPage()`, `QtMainWindow::createProfilCititorPage()`).
-
----
-
-## 🛠️ 7. Instrucțiuni de Compilare
-
-Acest proiect folosește **CMake**. Ai nevoie de un compilator C++ (ex: g++, MSVC, Clang) și librăriile Qt5 / Qt6.
-
+### Rulare pe Windows (Folosind WSL / Linux Toolkit)
 ```bash
-# 1. Clonează repository-ul / navighează în directorul de bază
-cd LibraryManagementSystem
+# 1. Creează folderul de compilare
+mkdir build && cd build
 
-# 2. Creează și intră în folderul de build
-mkdir build
-cd build
-
-# 3. Rulează CMake
+# 2. Generează fișierele Ninja/Make
 cmake ..
 
-# 4. Compilează Proiectul (pe Linux/WSL/MacOS)
-make
-# (pe Windows cu MSBuild / Visual Studio)
+# 3. Construiește executabilul UI Qt
 cmake --build .
+# ./biblioteca_qt va fi generat
 
-# 5. Rulează fișierul generat (ex: biblioteca_qt / app.exe)
+# (Opțional) Pentru a construi versiunea veche de Terminal:
+cd ..
+make TARGET=app
+# ./app va fi generat
 ```
-Dacă rulezi pe Windows, folosește scriptul rapid de rulare inclus: `run.bat`.
+> **Notă rapidă pentru Windows:** Poți folosi scripturile batch incluse direct în root: `run.bat` (pentru consola TUI) sau poți integra CMakeLists în Visual Studio / CLion.
+
+---
+
+## 📂 8. Structura Proiectului
+
+```text
+LibraryManagementSystem/
+├── CMakeLists.txt         # Configurarea pentru compilarea Qt
+├── Makefile               # Configurarea pentru compilarea aplicației de Consolă
+├── biblioteca.db          # Baza de date SQLite (Locala)
+├── README.md              # Documentația prezentă
+├── run.bat                # Script de execuție Windows
+├── Core Backend/          # Fișiere de logică de business
+│   ├── Biblioteca.cpp/.h
+│   ├── Carte*.cpp/.h      # Fiecare tip de carte (Fizică, Digitală, Audio)
+│   ├── Imprumut.cpp/.h
+│   └── Utilizator*.cpp/.h # Fiecare tip de rol (Director, Cititor, etc.)
+├── GUI Frontend/          # Interfața Qt
+│   ├── main_qt.cpp
+│   ├── QtMainWindow.cpp/.h
+│   └── QtDialogs.cpp/.h
+└── TUI Frontend/          # Interfața de Consolă/Terminal
+    ├── main.cpp
+    ├── ConsoleUI.cpp/.h
+    └── ui_functii.cpp/.h
+```
+
+---
+> Proiect realizat pentru a demonstra competențe avansate de C++, Software Architecture, lucrul cu baze de date (SQL) și GUI Development (Qt).
