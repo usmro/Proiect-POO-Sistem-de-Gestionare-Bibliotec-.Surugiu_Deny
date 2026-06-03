@@ -1,7 +1,0 @@
-DIRECTOR|DIR001|admin|Popescu|Ion|1234567890123|ion.popescu@biblio.ro|0721000001|Bd. Culturii nr. 1|1|Management General|15000|01/01/2015|Etaj 3 Birou 301|0
-BIBLIOTECAR|BIB001|admin|Ionescu|Maria|2900101400123|maria.ionescu@biblio.ro|0721000002|Str. Centrala nr. 2|1|Fictiune|5000|15/09/2018|08:00-16:00|0
-BIBLIOTECAR|BIB002|admin|Vasile|Elena|2920505400123|elena.vasile@biblio.ro|0721000003|Bd. Republicii nr. 3|1|Stiinta|4800|01/02/2020|12:00-20:00|0
-CITITOR|CIT001|1234|Popescu|Andrei|1900101010101|andrei.popescu@email.com|0740111222|Str. Florilor 1|1|Standard|01/06/2026|01/06/2027|3|0|0
-CITITOR|CIT002|1234|Ionescu|Elena|2910202020202|elena.ionescu@email.com|0740222333|Aleea Rozelor 5|1|Premium|01/06/2026|01/06/2027|5|0|0
-CITITOR|CIT003|1234|Gheorghe|Marian|1850303030303|marian.gheorghe@email.com|0740333444|Bd. Unirii 10|1|Standard|01/06/2026|01/06/2027|3|0|0
-INGRIJITOR|ING001|admin|Stanescu|Vasile|1750505050505|vasile.stanescu@biblio.ro|0755111222|Str. Curateniei 4|1|Toate salile|3500|10/10/2020|06:00-14:00|

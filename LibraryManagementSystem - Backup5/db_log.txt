@@ -1,8 +1,0 @@
-[01/06/2026] Actor: CIT001 | Actiune: a modificat utilizatorul ID: CIT001
-[01/06/2026] Actor: BIB001 | Actiune: STERGERE CARTE: 978-973-345-678
-[01/06/2026] Actor: BIB001 | Actiune: a modificat cartea ISBN: 978-973-123-456
-[26/08/2026] Actor: DIR001 | Actiune: a modificat cartea ISBN: 978-973-123-456
-[26/08/2026] Actor: DIR001 | Actiune: STERGERE CARTE: 978-973-234-567
-[26/08/2026] Actor: DIR001 | Actiune: RESTAURARE CARTE: 978-973-234-567
-[26/08/2026] Actor: DIR001 | Actiune: STERGERE CARTE: 978-973-234-567
-[26/08/2026] Actor: DIR001 | Actiune: RESTAURARE CARTE: 978-973-234-567

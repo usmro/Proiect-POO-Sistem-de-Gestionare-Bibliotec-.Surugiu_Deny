@@ -1,5 +1,0 @@
-C1-SalaFictiune-A-Raftul 1|Centrala|Sala Fictiune|A|Raftul 1|20
-C1-SalaStiinta-B-Raftul 1|Centrala|Sala Stiinta|B|Raftul 1|15
-C1-SalaIstorie-C-Raftul 1|Centrala|Sala Istorie|C|Raftul 1|30
-C1-SalaIT-D-Raftul 1|Centrala|Sala IT|D|Raftul 1|25
-C1-SalaIT-D-Raftul 2|Centrala|Sala IT|D|Raftul 2|25
