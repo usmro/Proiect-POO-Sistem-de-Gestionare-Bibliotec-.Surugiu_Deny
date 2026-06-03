@@ -137,6 +137,11 @@ cd ..
 make TARGET=app
 # ./app va fi generat
 ```
+
+***Rulare cu wsl: instalare cmake si qt6:
+1.sudo apt update
+   sudo apt install build-essential cmake
+2.sudo apt install qt6-base-dev qt6-tools-dev
 > **Notă rapidă pentru Windows:** Poți folosi scripturile batch incluse direct în root: `run.bat` (pentru consola TUI) sau poți integra CMakeLists în Visual Studio / CLion.
 
 ---
